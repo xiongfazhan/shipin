@@ -1,0 +1,108 @@
+/* 模态框样式 */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  position: relative;
+  background-color: #0c2846;
+  margin: 10% auto;
+  padding: 0;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  width: 70%;
+  max-width: 700px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  padding: 15px 20px;
+  background-color: #001529;
+  border-bottom: 1px solid #1e3a5f;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #1890ff;
+}
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-cmd-output {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #00ff00;
+  font-family: Consolas, monospace;
+  padding: 15px;
+  border-radius: 4px;
+  height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.modal-cmd-input {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-cmd-input input {
+  flex: 1;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid #1e3a5f;
+  padding: 10px 15px;
+  color: white;
+  border-radius: 4px;
+}
+
+.modal-cmd-input input:focus {
+  outline: none;
+  border-color: #1890ff;
+}
+
+.modal-cmd-input button {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-cmd-input button:hover {
+  background-color: #40a9ff;
+}

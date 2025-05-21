@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>智能视频分析系统</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/modal.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+  <div class="nav-bar">
+    <h2>智能视频分析系统</h2>
+    <div class="nav-buttons">
+      <button class="nav-button active" data-view="data_import_config">数据导入与配置</button>
+      <a href="/detection_results" class="nav-button" style="text-decoration: none; display: flex; align-items: center;">检测结果查询</a>
+      <a href="/database_admin" class="nav-button" style="text-decoration: none; display: flex; align-items: center;">数据库管理</a>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="content-container">
+      <div class="screenshots-view" id="detectionResultView" style="display: none;">
+        <div class="screenshot-display">
+          <canvas id="annotationCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
+          <img id="screenshotImage" src="" alt="检测结果预览" />
+        </div>
+        <div class="screenshot-controls">
+          <div class="screenshot-navigation">
+            <span id="screenshotInfo"></span>
+          </div>
+          <div class="screenshot-list" id="screenshotsList">
+            <!-- 缩略图将在这里显示检测相关的图片 -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="control-section active" id="dataImportConfigControls">
+        <h2 class="control-title">数据导入与流配置</h2>
+        <h3 class="section-title">Excel批量导入</h3>
+        <div>
+          <input type="file" id="excelFile" accept=".xls,.xlsx,.csv" style="margin-bottom: 10px;">
+          <button class="control-button" id="uploadExcelBtn">上传并导入</button>
+        </div>
+        
+        <h3 class="section-title">视频文件处理</h3>
+        <div>
+          <form id="videoUploadForm" enctype="multipart/form-data">
+            <input type="file" id="videoFile" name="video_file" accept=".mp4,.avi,.mov,.mkv,.wmv,.flv" style="margin-bottom: 10px;">
+            <div style="margin-bottom: 10px;">
+              <label for="videoId">视频ID (可选):</label>
+              <input type="text" id="videoId" name="video_id" placeholder="自动生成">
+            </div>
+            <div style="margin-bottom: 10px;">
+              <label for="frameInterval">抽帧间隔 (秒):</label>
+              <input type="number" id="frameInterval" name="interval" value="1.0" min="0.1" step="0.1">
+            </div>
+            <div style="margin-bottom: 10px;">
+              <label for="frameLimit">最大处理帧数:</label>
+              <input type="number" id="frameLimit" name="limit" value="20" min="1" step="1">
+            </div>
+            <button type="button" class="control-button" id="uploadVideoBtn">上传并处理视频</button>
+          </form>
+          <div id="videoProcessStatus" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"></div>
+        </div>
+        
+        <h3 class="section-title">视频流列表</h3>
+        <div id="videoStreamListContainer" style="max-height: 300px; overflow-y: auto; background: #0c2846; padding: 5px; border-radius: 4px;">
+          <!-- 视频流信息将在此处显示 -->
+          <p style="color: #aaa;">加载中...</p>
+        </div>
+        <h3 class="section-title">检测过滤策略配置</h3>
+        <button class="control-button" id="configPoliciesBtn">配置过滤策略</button>
+      </div>
+
+      <div class="control-section" id="detectionResultControls" style="display: none;">
+        <h2 class="control-title">检测结果查询与分析</h2>
+        <h3 class="section-title">筛选条件</h3>
+        <div>
+          <label for="dateRange">日期范围:</label>
+          <input type="date" id="startDate" name="startDate">
+          <input type="date" id="endDate" name="endDate">
+        </div>
+        <div>
+          <label for="videoSource">视频源:</label>
+          <select id="videoSourceFilter" name="videoSourceFilter">
+            <option value="">全部</option>
+            <!-- 视频源选项将动态加载 -->
+          </select>
+        </div>
+        <div>
+          <label for="objectClass">目标类别:</label>
+          <input type="text" id="objectClassFilter" name="objectClassFilter" placeholder="例如: person, car">
+        </div>
+        <button class="control-button" id="queryResultsBtn">查询检测结果</button>
+        
+        <h3 class="section-title">统计图表 (占位)</h3>
+        <div id="statsChartContainer" style="height: 200px; background: #0c2846; display:flex; align-items:center; justify-content:center; color:#aaa;">图表区域</div>
+      </div>
+
+      <!-- 确认对话框 -->
+      <div id="confirmDialog" class="dialog">
+        <div class="dialog-content">
+          <h3 id="confirmDialogTitle">确认操作</h3>
+          <p id="confirmDialogMessage">您确定要执行此操作吗？</p>
+          <div class="dialog-buttons">
+            <button id="confirmDialogOK">确定</button>
+            <button id="confirmDialogCancel">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="commandModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>命令执行</h3>
+        <span class="close" onclick="closeCommandModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="modal-cmd-output" id="modalCmdOutput"></div>
+        <div class="modal-cmd-input">
+          <input type="text" id="modalCmdInput" placeholder="输入命令..." onkeypress="handleModalCmdKeyPress(event)">
+          <button onclick="executeModalCommand()">执行</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/debug.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/detection_results.js"></script>
+  
+  <!-- 添加视频处理相关的JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 绑定视频上传按钮事件
+      const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+      if (uploadVideoBtn) {
+        uploadVideoBtn.addEventListener('click', uploadAndProcessVideo);
+      }
+    });
+    
+    function uploadAndProcessVideo() {
+      const videoFile = document.getElementById('videoFile').files[0];
+      if (!videoFile) {
+        alert('请选择视频文件');
+        return;
+      }
+      
+      // 获取表单数据
+      const formData = new FormData(document.getElementById('videoUploadForm'));
+      
+      // 显示状态
+      const statusDiv = document.getElementById('videoProcessStatus');
+      statusDiv.style.display = 'block';
+      statusDiv.innerHTML = '<div style="color:lightblue;">正在上传视频文件，请稍候...</div>';
+      
+      // 禁用上传按钮
+      const uploadBtn = document.getElementById('uploadVideoBtn');
+      uploadBtn.disabled = true;
+      uploadBtn.innerText = '上传中...';
+      
+      // 发送请求
+      fetch('/api/videos/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(data => {
+            throw new Error(data.message || '上传失败');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('上传成功:', data);
+        statusDiv.innerHTML = `
+          <div style="color:lightgreen;">视频上传成功！</div>
+          <div>视频ID: ${data.data.video_id}</div>
+          <div>文件名: ${data.data.filename}</div>
+          <div>任务ID: ${data.data.task_id}</div>
+          <div style="margin-top:10px;">系统正在后台处理视频，完成后可在"检测结果查询"页面查看结果。</div>
+        `;
+        
+        // 清空文件选择
+        document.getElementById('videoFile').value = '';
+      })
+      .catch(error => {
+        console.error('上传视频失败:', error);
+        statusDiv.innerHTML = `<div style="color:salmon;">上传失败: ${error.message}</div>`;
+      })
+      .finally(() => {
+        // 恢复上传按钮
+        uploadBtn.disabled = false;
+        uploadBtn.innerText = '上传并处理视频';
+      });
+    }
+  </script>
+</body>
+</html>
