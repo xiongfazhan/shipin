@@ -6,11 +6,18 @@ from utils.video_processing_api import video_processing_bp
 from utils.database_admin import database_admin_bp
 from utils import database
 import os
+import logging
+import controller.config as config
 
 # 在main.py中确保有如下配置
 # 设置 instance_path 为 controller/instance 目录
-instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
-app = Flask(__name__, static_folder='static', instance_path=instance_path)
+instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.INSTANCE_FOLDER_NAME)
+app = Flask(__name__, static_folder=config.STATIC_FOLDER, instance_path=instance_path)
+app.config.from_object(config)
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG if app.debug else logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # 初始化数据库 (必须在注册蓝图之前或之后，但在运行 app 之前完成)
 database.init_app(app)
@@ -41,7 +48,6 @@ def detection_results_page():
 
 if __name__ == '__main__':
     host = get_local_ip()
-    port = 6920
-    print(f"服务启动于 http://{host}:{port}")
+    app.logger.info(f"服务启动于 http://{host}:{config.PORT}")
     # open_browser(app)
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=config.PORT, debug=config.DEBUG)

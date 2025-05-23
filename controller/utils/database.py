@@ -7,7 +7,6 @@ from flask.cli import with_appcontext
 # 数据库文件的路径，存储在 Flask 实例文件夹中
 # 实例文件夹是存放应用运行时产生的数据的地方，例如数据库文件、上传的文件等。
 # 它应该在项目根目录之外，或者至少不被版本控制跟踪。
-DATABASE_FILENAME = 'video_streams.db'
 
 def get_instance_path():
     """获取实例文件夹路径
@@ -25,7 +24,8 @@ def get_instance_path():
 
 def get_database_path():
     instance_path = get_instance_path()
-    return os.path.join(instance_path, DATABASE_FILENAME)
+    database_filename = current_app.config.get('DATABASE_FILENAME', 'video_streams.db') # Default value for safety
+    return os.path.join(instance_path, database_filename)
 
 def get_db_connection():
     """获取数据库连接，如果当前上下文中不存在则创建"""
@@ -53,10 +53,10 @@ def init_db():
         # 尝试从应用资源加载 schema (如果存在)
         # with current_app.open_resource('schema.sql') as f:
         #     db.executescript(f.read().decode('utf8'))
-        # print("Database schema loaded and tables created if they didn't exist.")
+        # current_app.logger.info("Database schema loaded and tables created if they didn't exist.")
         
         # 直接执行SQL创建表
-        print("Creating tables directly if they don't exist.")
+        current_app.logger.info("Creating tables directly if they don't exist.")
         cursor = db.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS video_streams (
@@ -103,10 +103,10 @@ def init_db():
         cursor.execute("PRAGMA foreign_keys = ON;")
         
         db.commit()
-        print("Tables created successfully.")
+        current_app.logger.info("Tables created successfully.")
 
     except Exception as e:
-        print(f"Error during DB initialization: {e}")
+        current_app.logger.error(f"Error during DB initialization: {e}")
         # raise # 开发时可以不重新抛出，避免中断应用，但生产环境应考虑
 
 @click.command('init-db')
@@ -114,7 +114,8 @@ def init_db():
 def init_db_command():
     """CLI 命令：flask init-db，用于初始化数据库"""
     init_db()
-    click.echo('Initialized the database.')
+    click.echo('Initialized the database.') # Keep CLI output for user feedback
+    current_app.logger.info('Initialized the database via CLI command.')
 
 def init_app(app):
     """注册数据库相关功能到 Flask 应用实例"""
@@ -130,15 +131,16 @@ def init_app(app):
     # 打印数据库路径，方便确认
     with app.app_context(): # 需要应用上下文来调用get_database_path
         db_path_info = get_database_path()
-        print(f"Database will be stored at: {db_path_info}")
+        # Use app.logger here as current_app might not be available if app is not fully set up
+        app.logger.info(f"Database will be stored at: {db_path_info}")
     
     # 应用启动时自动初始化数据库表（如果它们不存在）
     with app.app_context():
         db_path = get_database_path()
         if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
-            print(f"Database file not found or empty at {db_path}. Initializing new database.")
+            current_app.logger.info(f"Database file not found or empty at {db_path}. Initializing new database.")
             init_db()
         else:
-            # 即使数据库文件存在，也确保表结构是正确的
-            print(f"Database file found at {db_path}. Ensuring tables exist...")
-            init_db() # 这会确保表存在，如果不存在则创建 
+            # 即使数据库文件存在，也不自动初始化，提示用户使用 flask init-db
+            current_app.logger.info(f"Database file found at {db_path}. Skipping automatic schema initialization. Use 'flask init-db' to re-initialize if needed.")
+            # init_db() # REMOVED: Do not automatically initialize if DB file exists and is not empty
