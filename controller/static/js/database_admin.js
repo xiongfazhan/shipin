@@ -21,50 +21,60 @@ let primaryKeyColumn = ''; // 主键列名
 /**
  * 初始化页面
  */
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', function() {
     // 加载表列表
     loadTablesList();
 
     // 绑定侧边栏点击事件
-    $('#dbSidebar').on('click', '.sidebar-item', function() {
-        const item = $(this);
-        
-        // 高亮选中项
-        $('.sidebar-item').removeClass('active');
-        item.addClass('active');
-        
-        if (item.hasClass('table-item')) {
-            // 切换到表数据视图
-            currentTable = item.data('table');
-            currentSection = 'table';
-            loadTableData(currentTable);
-        } else {
-            // 切换到特殊功能区
-            currentSection = item.data('section');
+    const dbSidebar = document.getElementById('dbSidebar');
+    if (dbSidebar) {
+        dbSidebar.addEventListener('click', function(event) {
+            const item = event.target.closest('.sidebar-item');
+            if (!item) return;
+
+            // 高亮选中项
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
             
-            switch(currentSection) {
-                case 'sql':
-                    showSqlQueryInterface();
-                    break;
-                case 'videos':
-                    loadVideosManagement();
-                    break;
-                case 'detections':
-                    loadDetectionsManagement();
-                    break;
+            if (item.classList.contains('table-item')) {
+                // 切换到表数据视图
+                currentTable = item.dataset.table;
+                currentSection = 'table';
+                loadTableData(currentTable);
+            } else {
+                // 切换到特殊功能区
+                currentSection = item.dataset.section;
+                
+                switch(currentSection) {
+                    case 'sql':
+                        showSqlQueryInterface();
+                        break;
+                    case 'videos':
+                        loadVideosManagement();
+                        break;
+                    case 'detections':
+                        loadDetectionsManagement();
+                        break;
+                }
             }
-        }
-    });
+        });
+    }
 
     // 绑定保存记录按钮
-    $('#saveRecord').on('click', function() {
-        saveRecord();
-    });
+    const saveRecordBtn = document.getElementById('saveRecord');
+    if (saveRecordBtn) {
+        saveRecordBtn.addEventListener('click', function() {
+            saveRecord();
+        });
+    }
     
     // 绑定确认删除按钮
-    $('#confirmDelete').on('click', function() {
-        deleteRecord();
-    });
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function() {
+            deleteRecord();
+        });
+    }
 });
 
 /**
@@ -89,7 +99,10 @@ function loadTablesList() {
                     `;
                 }).join('');
                 
-                $('.tables-list').html(tablesListHtml);
+                const tablesListContainer = document.querySelector('.tables-list');
+                if (tablesListContainer) {
+                    tablesListContainer.innerHTML = tablesListHtml;
+                }
             } else {
                 showError('加载表列表失败', response.message);
             }
@@ -104,22 +117,29 @@ function loadTablesList() {
  * 加载表数据
  */
 function loadTableData(tableName, page = 1, perPage = 20) {
-    $('#contentArea').html(`
-        <div class="text-center p-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">加载中...</span>
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+        contentArea.innerHTML = `
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">加载中...</span>
+                </div>
+                <p class="mt-3">正在加载表 ${tableName} 的数据...</p>
             </div>
-            <p class="mt-3">正在加载表 ${tableName} 的数据...</p>
-        </div>
-    `);
+        `;
+    }
     
     // 获取排序信息
-    const sortBy = $('#sortColumn').val() || '';
-    const sortOrder = $('#sortOrder').val() || 'asc';
+    const sortColumnEl = document.getElementById('sortColumn');
+    const sortOrderEl = document.getElementById('sortOrder');
+    const sortBy = sortColumnEl ? sortColumnEl.value : '';
+    const sortOrder = sortOrderEl ? sortOrderEl.value : 'asc';
     
     // 获取过滤信息
-    const filterColumn = $('#filterColumn').val() || '';
-    const filterValue = $('#filterValue').val() || '';
+    const filterColumnEl = document.getElementById('filterColumn');
+    const filterValueEl = document.getElementById('filterValue');
+    const filterColumn = filterColumnEl ? filterColumnEl.value : '';
+    const filterValue = filterValueEl ? filterValueEl.value : '';
     
     $.ajax({
         url: `/api/db/table/${tableName}/data`,
@@ -290,15 +310,20 @@ function displayTableData(tableName, columns, data, pagination) {
     `;
     
     // 显示到内容区域
-    $('#contentArea').html(tableHtml);
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+        contentArea.innerHTML = tableHtml;
+    }
 }
 
 /**
  * 显示添加记录表单
  */
 function showAddRecordForm(tableName) {
+    const recordForm = document.getElementById('recordForm');
+    if (!recordForm) return;
     // 重置表单
-    $('#recordForm').html('');
+    recordForm.innerHTML = '';
     currentRecord = null;
     
     // 获取表的列信息
@@ -335,7 +360,7 @@ function showAddRecordForm(tableName) {
         }
         
         // 添加表单组
-        $('#recordForm').append(`
+        recordForm.insertAdjacentHTML('beforeend', `
             <div class="form-group">
                 <label for="field_${column.name}">${column.name} ${column.type}</label>
                 ${inputField}
@@ -345,10 +370,16 @@ function showAddRecordForm(tableName) {
     });
     
     // 更新模态框标题和保存按钮数据
-    $('#tableDataModalLabel').text(`添加 ${tableName} 记录`);
-    $('#saveRecord').data('action', 'add').data('table', tableName);
+    const modalLabel = document.getElementById('tableDataModalLabel');
+    if (modalLabel) modalLabel.textContent = `添加 ${tableName} 记录`;
     
-    // 显示模态框
+    const saveRecordBtn = document.getElementById('saveRecord');
+    if (saveRecordBtn) {
+        saveRecordBtn.dataset.action = 'add';
+        saveRecordBtn.dataset.table = tableName;
+    }
+    
+    // 显示模态框 (jQuery preserved)
     $('#tableDataModal').modal('show');
 }
 
@@ -359,8 +390,10 @@ function editRecord(index) {
     const record = tableData[index];
     currentRecord = record;
     
+    const recordForm = document.getElementById('recordForm');
+    if (!recordForm) return;
     // 重置表单
-    $('#recordForm').html('');
+    recordForm.innerHTML = '';
     
     // 获取表的列信息
     const columns = tableInfo[currentTable].columns;
@@ -398,7 +431,7 @@ function editRecord(index) {
         }
         
         // 添加表单组
-        $('#recordForm').append(`
+        recordForm.insertAdjacentHTML('beforeend', `
             <div class="form-group">
                 <label for="field_${column.name}">${column.name} ${column.type}</label>
                 ${inputField}
@@ -407,10 +440,17 @@ function editRecord(index) {
     });
     
     // 更新模态框标题和保存按钮数据
-    $('#tableDataModalLabel').text(`编辑 ${currentTable} 记录`);
-    $('#saveRecord').data('action', 'edit').data('table', currentTable).data('id', record[primaryKeyColumn]);
+    const modalLabel = document.getElementById('tableDataModalLabel');
+    if (modalLabel) modalLabel.textContent = `编辑 ${currentTable} 记录`;
+
+    const saveRecordBtn = document.getElementById('saveRecord');
+    if (saveRecordBtn) {
+        saveRecordBtn.dataset.action = 'edit';
+        saveRecordBtn.dataset.table = currentTable;
+        saveRecordBtn.dataset.id = record[primaryKeyColumn];
+    }
     
-    // 显示模态框
+    // 显示模态框 (jQuery preserved)
     $('#tableDataModal').modal('show');
 }
 
@@ -421,23 +461,34 @@ function confirmDeleteRecord(index) {
     const record = tableData[index];
     currentRecord = record;
     
-    // 显示确认对话框
+    // 显示确认对话框 (jQuery preserved)
     $('#confirmDeleteModal').modal('show');
-    $('#confirmDelete').data('table', currentTable).data('id', record[primaryKeyColumn]);
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.dataset.table = currentTable;
+        confirmDeleteBtn.dataset.id = record[primaryKeyColumn];
+    }
 }
 
 /**
  * 保存记录
  */
 function saveRecord() {
-    const table = $('#saveRecord').data('table');
-    const action = $('#saveRecord').data('action');
+    const saveRecordBtn = document.getElementById('saveRecord');
+    if (!saveRecordBtn) return;
+
+    const table = saveRecordBtn.dataset.table;
+    const action = saveRecordBtn.dataset.action;
     
     // 收集表单数据
     const formData = {};
-    $('#recordForm').serializeArray().forEach(item => {
-        formData[item.name] = item.value === '' ? null : item.value;
-    });
+    const formElements = document.getElementById('recordForm').elements;
+    for (let i = 0; i < formElements.length; i++) {
+        const item = formElements[i];
+        if (item.name) {
+            formData[item.name] = item.value === '' ? null : item.value;
+        }
+    }
     
     // 发送请求
     if (action === 'add') {
@@ -467,7 +518,7 @@ function saveRecord() {
         });
     } else if (action === 'edit') {
         // 编辑记录
-        const id = $('#saveRecord').data('id');
+        const id = saveRecordBtn.dataset.id;
         
         $.ajax({
             url: `/api/db/table/${table}/record/${id}`,
@@ -499,8 +550,11 @@ function saveRecord() {
  * 删除记录
  */
 function deleteRecord() {
-    const table = $('#confirmDelete').data('table');
-    const id = $('#confirmDelete').data('id');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    if (!confirmDeleteBtn) return;
+
+    const table = confirmDeleteBtn.dataset.table;
+    const id = confirmDeleteBtn.dataset.id;
     
     $.ajax({
         url: `/api/db/table/${table}/record/${id}`,
@@ -556,36 +610,49 @@ function showSqlQueryInterface() {
         </div>
     `;
     
-    $('#contentArea').html(sqlHtml);
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+        contentArea.innerHTML = sqlHtml;
+    }
     
     // 绑定执行按钮
-    $('#executeSql').on('click', function() {
-        executeSql();
-    });
+    const executeSqlBtn = document.getElementById('executeSql');
+    if (executeSqlBtn) {
+        executeSqlBtn.addEventListener('click', function() {
+            executeSql();
+        });
+    }
 }
 
 /**
  * 执行SQL查询
  */
 function executeSql() {
-    const sql = $('#sqlEditor').val().trim();
+    const sqlEditor = document.getElementById('sqlEditor');
+    const sql = sqlEditor ? sqlEditor.value.trim() : '';
     if (!sql) {
         showError('SQL错误', '请输入SQL语句');
         return;
     }
     
-    const readonly = $('#readonlyMode').is(':checked');
+    const readonlyModeCheckbox = document.getElementById('readonlyMode');
+    const readonly = readonlyModeCheckbox ? readonlyModeCheckbox.checked : true;
     
     // 显示加载状态
-    $('#sqlResult').show();
-    $('#sqlResultContent').html(`
-        <div class="text-center py-3">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">执行查询中...</span>
+    const sqlResultDiv = document.getElementById('sqlResult');
+    const sqlResultContentDiv = document.getElementById('sqlResultContent');
+
+    if (sqlResultDiv) sqlResultDiv.style.display = 'block';
+    if (sqlResultContentDiv) {
+        sqlResultContentDiv.innerHTML = `
+            <div class="text-center py-3">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">执行查询中...</span>
+                </div>
+                <p class="mt-2">正在执行SQL查询...</p>
             </div>
-            <p class="mt-2">正在执行SQL查询...</p>
-        </div>
-    `);
+        `;
+    }
     
     $.ajax({
         url: '/api/db/exec',
@@ -603,26 +670,32 @@ function executeSql() {
                     displaySqlResult(response.data);
                 } else {
                     // 显示影响的行数
-                    $('#sqlResultContent').html(`
+                if (sqlResultContentDiv) {
+                    sqlResultContentDiv.innerHTML = `
                         <div class="alert alert-success">
                             执行成功！影响了 ${response.data.affected_rows} 行。
                         </div>
-                    `);
+                    `;
+                }
                 }
             } else {
-                $('#sqlResultContent').html(`
+            if (sqlResultContentDiv) {
+                sqlResultContentDiv.innerHTML = `
                     <div class="alert alert-danger">
                         执行失败: ${response.message}
                     </div>
-                `);
+                `;
+            }
             }
         },
         error: function(xhr) {
-            $('#sqlResultContent').html(`
+        if (sqlResultContentDiv) {
+            sqlResultContentDiv.innerHTML = `
                 <div class="alert alert-danger">
                     请求错误: ${xhr.statusText}
                 </div>
-            `);
+            `;
+        }
         }
     });
 }
@@ -675,28 +748,34 @@ function displaySqlResult(data) {
         </div>
     `;
     
-    $('#sqlResultContent').html(resultHtml);
+    const sqlResultContentDiv = document.getElementById('sqlResultContent');
+    if (sqlResultContentDiv) {
+        sqlResultContentDiv.innerHTML = resultHtml;
+    }
 }
 
 /**
  * 加载视频源管理界面
  */
 function loadVideosManagement() {
-    $('#contentArea').html(`
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>视频源管理</h5>
-            </div>
-            <div class="card-body">
-                <div class="text-center p-3">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">加载中...</span>
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+        contentArea.innerHTML = `
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>视频源管理</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center p-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">加载中...</span>
+                        </div>
+                        <p class="mt-2">正在加载视频源数据...</p>
                     </div>
-                    <p class="mt-2">正在加载视频源数据...</p>
                 </div>
             </div>
-        </div>
-    `);
+        `;
+    }
     
     $.ajax({
         url: '/api/db/videos',
@@ -770,28 +849,34 @@ function displayVideosData(videos) {
         </div>
     `;
     
-    $('#contentArea').html(videosHtml);
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+        contentArea.innerHTML = videosHtml;
+    }
 }
 
 /**
  * 加载检测结果管理界面
  */
 function loadDetectionsManagement() {
-    $('#contentArea').html(`
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>检测结果管理</h5>
-            </div>
-            <div class="card-body">
-                <div class="text-center p-3">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">加载中...</span>
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+        contentArea.innerHTML = `
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>检测结果管理</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center p-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">加载中...</span>
+                        </div>
+                        <p class="mt-2">正在加载检测结果数据...</p>
                     </div>
-                    <p class="mt-2">正在加载检测结果数据...</p>
                 </div>
             </div>
-        </div>
-    `);
+        `;
+    }
     
     $.ajax({
         url: '/api/db/detections',
@@ -888,7 +973,10 @@ function displayDetectionsData(data) {
         </div>
     `;
     
-    $('#contentArea').html(detectionsHtml);
+    const contentArea = document.getElementById('contentArea');
+    if (contentArea) {
+        contentArea.innerHTML = detectionsHtml;
+    }
     
     // 加载视频源过滤选项
     loadVideoFilterOptions();
@@ -910,7 +998,10 @@ function loadVideoFilterOptions() {
                     optionsHtml += `<option value="${video.video_id}">${video.video_id}</option>`;
                 });
                 
-                $('#videoFilter').html(optionsHtml);
+                const videoFilterSelect = document.getElementById('videoFilter');
+                if (videoFilterSelect) {
+                    videoFilterSelect.innerHTML = optionsHtml;
+                }
             }
         }
     });
@@ -920,7 +1011,8 @@ function loadVideoFilterOptions() {
  * 根据视频源过滤检测结果
  */
 function filterDetectionsByVideo() {
-    const videoId = $('#videoFilter').val();
+    const videoFilterSelect = document.getElementById('videoFilter');
+    const videoId = videoFilterSelect ? videoFilterSelect.value : '';
     
     $.ajax({
         url: '/api/db/detections',
@@ -947,7 +1039,8 @@ function filterDetectionsByVideo() {
  * 加载更多检测结果
  */
 function loadMoreDetections(offset) {
-    const videoId = $('#videoFilter').val();
+    const videoFilterSelect = document.getElementById('videoFilter');
+    const videoId = videoFilterSelect ? videoFilterSelect.value : '';
     
     $.ajax({
         url: '/api/db/detections',
@@ -1003,10 +1096,15 @@ function applyFilters() {
  * 清除过滤器
  */
 function clearFilters() {
-    $('#filterColumn').val('');
-    $('#filterValue').val('');
-    $('#sortColumn').val('');
-    $('#sortOrder').val('asc');
+    const filterColumnEl = document.getElementById('filterColumn');
+    const filterValueEl = document.getElementById('filterValue');
+    const sortColumnEl = document.getElementById('sortColumn');
+    const sortOrderEl = document.getElementById('sortOrder');
+
+    if (filterColumnEl) filterColumnEl.value = '';
+    if (filterValueEl) filterValueEl.value = '';
+    if (sortColumnEl) sortColumnEl.value = '';
+    if (sortOrderEl) sortOrderEl.value = 'asc';
     
     loadTableData(currentTable, 1, paginationInfo.per_page);
 }
