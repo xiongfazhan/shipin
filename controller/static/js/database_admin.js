@@ -1129,12 +1129,14 @@ function escapeHtml(text) {
  * 显示错误提示
  */
 function showError(title, message) {
-    alert(`${title}: ${message}`);
+    // alert(`${title}: ${message}`); // Original
+    showToast(`${title}: ${message}`, 'error');
 }
 
 /**
  * 显示成功提示
  */
 function showSuccess(message) {
-    alert(message);
+    // alert(message); // Original
+    showToast(message, 'success');
 } 

@@ -868,3 +868,169 @@ input[type="text"]:focus, input[type="url"]:focus {
     border: 1px solid var(--border-color);
     font-family: Consolas, monospace;
 }
+
+/* Toast Notification System */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000; /* High z-index to appear above other content */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast-message {
+    padding: 12px 18px;
+    border-radius: 5px;
+    color: var(--text-color);
+    font-size: 14px;
+    opacity: 0; /* Start hidden for transition */
+    transform: translateX(100%); /* Start off-screen for transition */
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    min-width: 250px;
+    max-width: 350px;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.toast-message.info {
+    background-color: var(--primary-color); /* Or a neutral dark blue/gray */
+    border-left: 5px solid var(--primary-hover);
+}
+
+.toast-message.success {
+    background-color: var(--success-color);
+    border-left: 5px solid #3aa51a; /* Darker shade of success */
+}
+
+.toast-message.error {
+    background-color: var(--error-color);
+    border-left: 5px solid #cc3c3e; /* Darker shade of error */
+}
+
+.toast-message.warning {
+    background-color: var(--warning-color);
+    color: #333; /* Darker text for yellow warning */
+    border-left: 5px solid #c7880f; /* Darker shade of warning */
+}
+
+/* Responsive Design Adjustments */
+@media (max-width: 768px) {
+    /* Adjust body for natural scrolling on mobile */
+    body {
+        height: auto; /* Allow content to define height */
+        min-height: 100vh; /* Ensure it still takes at least full viewport height */
+    }
+
+    /* Main Layout: Stack content and control panel */
+    .main-container {
+        flex-direction: column;
+        height: auto; /* Allow content to define height */
+        min-height: 0; /* Reset min-height if it causes issues with column flow */
+    }
+
+    .control-panel {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        padding: 15px; /* Slightly reduced padding */
+        /* max-height: 40vh; /* Optional: constrain control panel height on mobile */
+        /* overflow-y: auto; /* Ensure control panel itself can scroll if content exceeds max-height */
+    }
+
+    .content-container {
+        width: 100%;
+        flex-basis: auto; /* Allow it to take its natural height */
+        /* min-height: 60vh; /* Optional: ensure content container has some min height */
+    }
+    
+    /* Navigation Bar: Stack title and buttons */
+    .nav-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px; /* Adjusted padding for stacked layout */
+    }
+
+    .nav-bar h2 {
+        margin-bottom: 10px; /* Space below title */
+    }
+
+    .nav-buttons {
+        flex-direction: column;
+        width: 100%; /* Make button container full width */
+        gap: 5px; /* Reduced gap for stacked buttons */
+    }
+
+    .nav-button {
+        width: 100%; /* Make buttons full width */
+        justify-content: flex-start; /* Align text to left */
+        padding: 10px 15px; /* Larger touch targets */
+    }
+    
+    /* Tab Navigation on index.html: Allow wrapping */
+    .tabs-nav {
+        flex-wrap: wrap;
+        gap: 5px; /* Add gap for wrapped items */
+    }
+    .tab-link {
+        flex-grow: 1; /* Allow tabs to grow and wrap nicely */
+        text-align: center; /* Center text for better appearance when wrapped */
+        margin-bottom: 5px; /* Space when wrapped */
+    }
+
+    /* Database Admin Page Specific Adjustments */
+    .db-admin-page .sidebar {
+        width: 100%;
+        min-height: auto; /* Allow content to define height */
+        border-right: none; /* Remove side border */
+        border-bottom: 1px solid var(--border-color);
+    }
+    .db-admin-page .content-area {
+        padding: 15px; /* Consistent padding */
+    }
+    .db-admin-page .jumbotron {
+        padding: 1.5rem 1rem; /* Reduce padding */
+    }
+    .db-admin-page .jumbotron h1 {
+        font-size: 1.8rem; /* Reduce heading size */
+    }
+
+    /* Detection Results Page Specific Adjustments */
+    /* The control panel on detection_results.html already has its own inline style width: 340px */
+    /* To make it full width, we'd need to ensure this media query overrides that, or remove the inline style */
+    /* For now, assuming the general .control-panel rule above will be sufficient if inline styles are harmonized */
+    .screenshots-view {
+        /* No specific changes yet, but could adjust screenshot-controls height or layout if needed */
+    }
+    .screenshot-controls {
+        height: auto; /* Allow controls to take natural height */
+        padding: 10px;
+    }
+    .screenshot-list {
+        /* Could make it scroll vertically if too many thumbnails */
+        flex-wrap: nowrap; /* Keep horizontal scroll for thumbnails */
+        overflow-x: auto;
+    }
+
+    /* Adjust chart containers for better fit */
+    #statsChartContainer div[style*="max-width: 280px"] { /* Pie chart container */
+        max-width: 100% !important; /* Allow pie chart to use available width */
+        height: auto !important; /* Adjust height automatically */
+        margin-bottom: 10px !important;
+    }
+     #statsChartContainer canvas {
+        max-height: 250px; /* Limit canvas height for pie to prevent it from becoming too large */
+    }
+    #dateStatsChart {
+        max-height: 180px; /* Limit bar chart height */
+    }
+    #statsChartContainer h4 {
+        font-size: 1.1rem; /* Slightly smaller chart titles */
+    }
+
+}

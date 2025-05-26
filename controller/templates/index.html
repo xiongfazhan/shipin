@@ -11,7 +11,7 @@
   <div class="nav-bar">
     <h2>智能视频分析系统</h2>
     <div class="nav-buttons">
-      <a href="/" class="nav-button active">数据导入与配置</a>
+      <a href="/" class="nav-button active" aria-current="page">数据导入与配置</a>
       <a href="/detection_results" class="nav-button">检测结果查询</a>
       <a href="/database_admin" class="nav-button">数据库管理</a>
     </div>
@@ -39,14 +39,14 @@
       <div class="control-section active" id="dataImportConfigControls">
         <h2 class="control-title">数据导入与流配置</h2>
 
-        <div class="tabs-nav">
-            <button class="tab-link active" data-tab="tab-excel-import">Excel批量导入</button>
-            <button class="tab-link" data-tab="tab-video-file">视频文件处理</button>
-            <button class="tab-link" data-tab="tab-stream-list">视频流列表</button>
-            <button class="tab-link" data-tab="tab-filter-policies">检测过滤策略</button>
+        <div class="tabs-nav" role="tablist">
+            <button class="tab-link active" role="tab" data-tab="tab-excel-import" id="tab-btn-excel-import" aria-selected="true">Excel批量导入</button>
+            <button class="tab-link" role="tab" data-tab="tab-video-file" id="tab-btn-video-file" aria-selected="false">视频文件处理</button>
+            <button class="tab-link" role="tab" data-tab="tab-stream-list" id="tab-btn-stream-list" aria-selected="false">视频流列表</button>
+            <button class="tab-link" role="tab" data-tab="tab-filter-policies" id="tab-btn-filter-policies" aria-selected="false">检测过滤策略</button>
         </div>
 
-        <div id="tab-excel-import" class="tab-content active">
+        <div id="tab-excel-import" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-excel-import">
             <h3 class="section-title">Excel批量导入</h3>
             <div>
               <input type="file" id="excelFile" accept=".xls,.xlsx,.csv" style="margin-bottom: 10px;">
@@ -55,7 +55,7 @@
             </div>
         </div>
         
-        <div id="tab-video-file" class="tab-content">
+        <div id="tab-video-file" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-video-file">
             <h3 class="section-title">视频文件处理</h3>
             <div>
               <form id="videoUploadForm" enctype="multipart/form-data">
@@ -78,7 +78,7 @@
             </div>
         </div>
         
-        <div id="tab-stream-list" class="tab-content">
+        <div id="tab-stream-list" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-stream-list">
             <h3 class="section-title">视频流列表</h3>
             <div id="videoStreamListContainer" style="max-height: 300px; overflow-y: auto; background: #0c2846; padding: 5px; border-radius: 4px;">
               <!-- 视频流信息将在此处显示 -->
@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        <div id="tab-filter-policies" class="tab-content">
+        <div id="tab-filter-policies" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-filter-policies">
             <h3 class="section-title">检测过滤策略配置</h3>
             <button class="control-button" id="configPoliciesBtn">配置过滤策略</button>
             <!-- Placeholder for policy configuration UI -->
@@ -139,7 +139,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3>命令执行</h3>
-        <span class="close" onclick="closeCommandModal()">&times;</span>
+        <button type="button" class="close-button" aria-label="Close" onclick="closeCommandModal()">&times;</button>
       </div>
       <div class="modal-body">
         <div class="modal-cmd-output" id="modalCmdOutput"></div>
@@ -152,9 +152,11 @@
   </div>
 
   <script src="/static/js/debug.js"></script>
+  <script src="/static/js/utils.js"></script> <!-- Added utils.js -->
   <script src="/static/js/app.js"></script>
   <script src="/static/js/detection_results.js"></script>
   
   <!-- Inline script for video upload has been moved to app.js -->
+  <div id="toast-container"></div> <!-- Added toast container -->
 </body>
 </html>

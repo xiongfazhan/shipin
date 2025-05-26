@@ -106,3 +106,29 @@
 .modal-cmd-input button:hover {
   background-color: #40a9ff;
 }
+
+/* Styling for the new .close-button to make it behave like the old .close span */
+.modal-header .close-button {
+    background: none;
+    border: none;
+    font-size: 1.75rem; /* Adjusted to be similar to Bootstrap's .close */
+    font-weight: bold; /* Bootstrap's .close is bold */
+    line-height: 1; /* Bootstrap's .close line-height */
+    color: #aaa; /* Matched original .close color */
+    text-shadow: none; /* Bootstrap's .close has no text-shadow by default */
+    opacity: 0.7; /* Matched custom .close opacity */
+    padding: 0; /* Remove default button padding */
+    cursor: pointer;
+    /* Position it like Bootstrap's .close if needed */
+    /* position: absolute; */
+    /* top: 10px; */
+    /* right: 15px; */
+}
+
+.modal-header .close-button:hover,
+.modal-header .close-button:focus {
+    opacity: 1;
+    color: #1890ff; /* Matched original .close hover color */
+    text-decoration: none; /* Remove underline on hover/focus for buttons */
+    outline: none; /* Remove focus outline if not desired */
+}

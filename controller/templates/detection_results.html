@@ -127,7 +127,7 @@
     <h2>智能视频分析系统</h2>
     <div class="nav-buttons">
       <a href="/" class="nav-button">数据导入与配置</a>
-      <a href="/detection_results" class="nav-button active">检测结果查询</a>
+      <a href="/detection_results" class="nav-button active" aria-current="page">检测结果查询</a>
       <a href="/database_admin" class="nav-button">数据库管理</a>
     </div>
   </div>
@@ -198,6 +198,7 @@
 
   <script src="/static/js/jquery-3.5.1.min.js"></script>
   <script src="/static/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/utils.js"></script> <!-- Added utils.js -->
   <script src="/static/js/detection_results.js"></script>
   
   <script>
@@ -225,5 +226,6 @@
       });
     });
   </script>
+  <div id="toast-container"></div> <!-- Added toast container -->
 </body>
 </html> 

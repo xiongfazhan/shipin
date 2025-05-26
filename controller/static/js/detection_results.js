@@ -92,7 +92,12 @@ function formatDate(date) {
  */
 function loadVideoSources() {
     fetch('/api/detection/videos')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`获取视频源失败: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.code === 0 && data.data) {
                 const videoSelect = document.getElementById('videoSourceFilter');
@@ -108,7 +113,10 @@ function loadVideoSources() {
                 }
             }
         })
-        .catch(error => console.error('加载视频源失败:', error));
+        .catch(error => {
+            console.error('加载视频源失败:', error);
+            showToast(`加载视频源选项失败: ${error.message}`, 'error');
+        });
 }
 
 /**
@@ -116,7 +124,12 @@ function loadVideoSources() {
  */
 function loadObjectClasses() {
     fetch('/api/detection/classes')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`获取目标类别失败: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.code === 0 && data.data) {
                 const objectClassInput = document.getElementById('objectClassFilter');
@@ -142,7 +155,10 @@ function loadObjectClasses() {
                 }
             }
         })
-        .catch(error => console.error('加载目标类别失败:', error));
+        .catch(error => {
+            console.error('加载目标类别失败:', error);
+            showToast(`加载目标类别选项失败: ${error.message}`, 'error');
+        });
 }
 
 /**
@@ -180,7 +196,12 @@ function queryDetectionResults() {
     
     // 发送请求
     fetch(`/api/detection/results?${queryParams.toString()}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`查询检测结果失败: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.code === 0 && data.data) {
                 displayDetectionResults(data.data.results, data.data.pagination);
@@ -393,7 +414,12 @@ function showDetectionDetail(resultId) {
     }
     
     fetch(`/api/detection/detail/${resultId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`获取检测详情失败: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.code === 0 && data.data) {
                 displayDetailedResult(data.data);

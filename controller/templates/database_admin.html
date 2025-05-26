@@ -99,7 +99,7 @@
         <div class="nav-buttons">
             <a href="/" class="nav-button">数据导入与配置</a>
             <a href="/detection_results" class="nav-button">检测结果查询</a>
-            <a href="/database_admin" class="nav-button active">数据库管理</a>
+      <a href="/database_admin" class="nav-button active" aria-current="page">数据库管理</a>
         </div>
     </div>
 
@@ -187,6 +187,8 @@
     <!-- 引入脚本库 -->
     <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script> <!-- Added utils.js -->
     <script src="{{ url_for('static', filename='js/database_admin.js') }}"></script>
+    <div id="toast-container"></div> <!-- Added toast container -->
 </body>
 </html> 

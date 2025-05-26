@@ -3,10 +3,8 @@
  * 负责初始化并协调各个功能模块
  */
 
-// 全局变量共享
-// window.targetUrl = ''; // 被控端URL，在新系统中可能用于连接YOLO服务或其他外部服务。此变量在旧系统中由 remote-control.js 或其他模块管理，现在需要按需定义和管理。
-let currentView = 'data_import_config'; // 当前活动的视图
-let currentConfirmAction = null; // 当前确认操作的回调
+// let currentView = 'data_import_config'; // Potentially unused if switchView is simplified/removed
+let currentConfirmAction = null; // Current confirm action callback
 
 // 在文档加载完成后初始化应用
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,29 +23,27 @@ function initApp() {
     
     // 设置初始界面状态
     console.log('设置初始界面状态...');
-    switchView(currentView); 
-    
-    // 初始化检测结果管理模块 (screenshot.js 可能会被改造用于此目的)
-    console.log('初始化检测结果管理模块 (依赖 screenshot.js 改造)...');
-    if (typeof initScreenshotManager === 'function') {
-      // initScreenshotManager(); // 需要适配新的 detectionResultView 和功能
-      console.log('initScreenshotManager 调用被注释，待 screenshot.js 改造后启用并适配。');
-    } else {
-      console.warn('initScreenshotManager 函数未定义 (可能 screenshot.js 未加载或未包含此函数)');
+    // Directly manage visibility for the initial view (data_import_config)
+    const dataImportConfigControls = document.getElementById('dataImportConfigControls');
+    if (dataImportConfigControls) {
+        dataImportConfigControls.style.display = 'flex'; // Or 'block' depending on its desired layout
     }
+    const detectionResultControls = document.getElementById('detectionResultControls');
+    if (detectionResultControls) {
+        detectionResultControls.style.display = 'none';
+    }
+    // The old switchView logic for 'data_import_config' also called loadVideoStreamsList()
+    loadVideoStreamsList(); 
+    
+    // Commented out/removed unused init/setup calls
+    // console.log('初始化检测结果管理模块 (依赖 screenshot.js 改造)...');
+    // if (typeof initScreenshotManager === 'function') { ... }
         
-    console.log('设置界面切换事件...');
-    setupViewSwitching();
+    // console.log('设置界面切换事件...');
+    // setupViewSwitching(); // Removed as nav buttons use hrefs
     
-    console.log('设置图像/画布调整事件 (依赖 screenshot.js 改造)...');
-    if (typeof handleImageResize === 'function') {
-        // handleImageResize(); // 需要适配新的 detectionResultView 和 canvas用途
-        console.log('handleImageResize 调用被注释，待 screenshot.js 改造后启用并适配。');
-    } else {
-        // 如果 screenshot.js 被移除或不再定义此函数，则需要一个新实现
-        // setupDynamicCanvasResizing(); // 示例：新的Canvas调整函数
-        console.warn('handleImageResize 函数未定义。如果需要Canvas动态调整，请确保相关JS已加载或实现此功能。');
-    }
+    // console.log('设置图像/画布调整事件 (依赖 screenshot.js 改造)...');
+    // if (typeof handleImageResize === 'function') { ... }
 
     const uploadBtn = document.getElementById('uploadExcelBtn');
     if (uploadBtn) {
@@ -59,8 +55,8 @@ function initApp() {
     const queryBtn = document.getElementById('queryResultsBtn');
     if (queryBtn) {
       queryBtn.addEventListener('click', () => {
-        alert('查询检测结果功能待实现');
-        // handleQueryDetectionResults();
+        showToast('查询检测结果功能待实现', 'info');
+        // handleQueryDetectionResults(); // This function is not defined
       });
     }
     
@@ -101,7 +97,7 @@ function initApp() {
     console.log('智能视频分析系统初始化完成');
   } catch (error) {
     console.error('初始化过程出现错误:', error);
-    alert('系统初始化出错: ' + error.message);
+    showToast('系统初始化出错: ' + error.message, 'error');
   }
 }
 
@@ -152,81 +148,9 @@ function showConfirmDialog(title, message, callback) {
   confirmDialog.style.display = 'block';
 }
 
-/**
- * 设置视图切换功能
- */
-function setupViewSwitching() {
-  const buttons = document.querySelectorAll('.nav-button');
-  
-  buttons.forEach(button => {
-    button.addEventListener('click', function() {
-      const viewType = this.getAttribute('data-view');
-      if (viewType && viewType !== currentView) { 
-      switchView(viewType);
-      }
-    });
-  });
-}
-
-/**
- * 切换视图
- * @param {string} type - 'data_import_config' 或 'detection_results'
- */
-function switchView(type) {
-  // 如果切换到检测结果视图，重定向到独立的检测结果页面
-  if (type === 'detection_results') {
-    window.location.href = '/detection_results';
-    return;
-  }
-  
-  currentView = type;
-  console.log(`切换到视图: ${type}`);
-
-  const buttons = document.querySelectorAll('.nav-button');
-  buttons.forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-view') === type);
-  });
-
-  const detectionResultView = document.getElementById('detectionResultView');
-  const dataImportConfigControls = document.getElementById('dataImportConfigControls');
-  const detectionResultControls = document.getElementById('detectionResultControls');
-
-  if (detectionResultView) {
-      detectionResultView.style.display = (type === 'detection_results') ? 'flex' : 'none';
-  }
-  
-  if (dataImportConfigControls) {
-    dataImportConfigControls.style.display = (type === 'data_import_config') ? 'flex' : 'none';
-  }
-  if (detectionResultControls) {
-    detectionResultControls.style.display = (type === 'detection_results') ? 'flex' : 'none';
-  }
-
-  if (type === 'detection_results') {
-    console.log('进入检测结果视图，准备加载结果...');
-    
-    if (typeof loadScreenshots === 'function') { 
-        console.log("检测结果图像列表加载功能 (原loadScreenshots) 待适配");
-    }
-
-    const annotationCanvas = document.getElementById('annotationCanvas');
-      const screenshotImage = document.getElementById('screenshotImage');
-
-    if (annotationCanvas && screenshotImage) {
-        if (screenshotImage.complete && screenshotImage.naturalWidth > 0) {
-             console.log("检测结果Canvas初始化待适配");
-        } else {
-            screenshotImage.onload = () => {
-                console.log("检测结果Canvas初始化待适配 (图片加载后)");
-            };
-        }
-    }
-  } else if (type === 'data_import_config') {
-    console.log('进入数据导入与配置视图...');
-    loadVideoStreamsList(); // 加载视频流列表
-  }
-}
-
+// setupViewSwitching and switchView functions removed as main navigation uses hrefs,
+// and initial view setup is handled directly in initApp.
+// If data-view attributes were used for dynamic content switching on the main page, these would be kept.
 
 function handleExcelUpload() {
     const excelFileInput = document.getElementById('excelFile');
@@ -237,11 +161,12 @@ function handleExcelUpload() {
     if (statusDiv) statusDiv.style.display = 'none'; // Hide previous messages
 
     if (!excelFileInput || !excelFileInput.files || excelFileInput.files.length === 0) {
+        // alert('请先选择一个Excel文件！'); // Original
+        showToast('请先选择一个Excel文件！', 'warning');
+        // Optionally, still update statusDiv if it's a more persistent message area
         if (statusDiv) {
             statusDiv.innerHTML = '<div style="color: var(--warning-color);">请先选择一个Excel文件！</div>';
             statusDiv.style.display = 'block';
-        } else {
-            alert('请先选择一个Excel文件！');
         }
         return;
     }
@@ -294,7 +219,8 @@ function handleExcelUpload() {
             statusDiv.innerHTML = messageHtml;
             statusDiv.style.display = 'block';
         } else {
-            alert(data.message || 'Excel文件处理完成！'); // Fallback
+            // Fallback if statusDiv is not available (should not happen ideally)
+            showToast(data.message || 'Excel文件处理完成！', data.code === 0 ? 'success' : 'info');
         }
         
         if (data.code === 0 || importedCount > 0) {
@@ -307,7 +233,8 @@ function handleExcelUpload() {
             statusDiv.innerHTML = `<div style="color: var(--error-color);">导入失败: ${error.message}</div>`;
             statusDiv.style.display = 'block';
         } else {
-            alert(`导入失败: ${error.message}`); // Fallback
+            // Fallback if statusDiv is not available
+            showToast(`导入失败: ${error.message}`, 'error');
         }
     })
     .finally(() => {
@@ -319,11 +246,10 @@ function handleExcelUpload() {
     });
 }
 
-//移除了 handleImageResize，因为其依赖的 screenshot.js 中的 redrawCanvas 等函数可能已不适用或被移除。
-// 如果需要Canvas动态调整，应结合新的Canvas绘制逻辑重新实现。
+// Commented out: Not currently used.
 // function handleImageResize() { ... }
 
-// 示例：后续阶段将实现的函数
+// Commented out: Not currently used or defined.
 // function handleQueryDetectionResults() { ... }
 // function loadDetectionResults() { ... }
 function loadVideoStreamsList() {
@@ -450,15 +376,15 @@ function toggleVideoStreamStatus(videoId, newStatus) {
             })
             .then(data => {
                 if (data.code === 0) {
-                    alert(`已${action}视频流 ${videoId}`);
+                    showToast(`已${action}视频流 ${videoId}`, 'success');
                     loadVideoStreamsList(); // 刷新列表
                 } else {
-                    alert(`操作失败: ${data.message}`);
+                    showToast(`操作失败: ${data.message}`, 'error');
                 }
             })
             .catch(error => {
                 console.error(`${action}视频流失败:`, error);
-                alert(`${action}失败: ${error.message}`);
+                showToast(`${action}失败: ${error.message}`, 'error');
             });
         }
     );
@@ -484,21 +410,21 @@ function deleteVideoStream(videoId) {
             })
             .then(data => {
                 if (data.code === 0) {
-                    alert(`已删除视频流 ${videoId}`);
+                    showToast(`已删除视频流 ${videoId}`, 'success');
                     loadVideoStreamsList(); // 刷新列表
                 } else {
-                    alert(`删除失败: ${data.message}`);
+                    showToast(`删除失败: ${data.message}`, 'error');
                 }
             })
             .catch(error => {
                 console.error('删除视频流失败:', error);
-                alert(`删除失败: ${error.message}`);
+                showToast(`删除失败: ${error.message}`, 'error');
             });
         }
     );
 }
 
-// 移除了 initChatFeature 和 sendMessage 函数，因为 chat.js 已被移除
+// Commented out: Not currently used.
 // function initChatFeature() { ... }
 // function sendMessage() { ... }
 
@@ -513,27 +439,36 @@ function setupTabs() {
         link.addEventListener('click', function() {
             const tabId = this.dataset.tab;
 
-            // Update active class for tab links
-            tabLinks.forEach(innerLink => innerLink.classList.remove('active'));
+            // Update active class and ARIA attributes for tab links
+            tabLinks.forEach(innerLink => {
+                innerLink.classList.remove('active');
+                innerLink.setAttribute('aria-selected', 'false');
+            });
             this.classList.add('active');
+            this.setAttribute('aria-selected', 'true');
 
             // Show/hide tab content panes
             tabContents.forEach(content => {
                 if (content.id === tabId) {
                     content.classList.add('active');
+                    // Future: could add aria-hidden to non-active tabpanels for further improvement
                 } else {
                     content.classList.remove('active');
                 }
             });
         });
     });
+
+    // Ensure initial state is correctly set (the active tab link should have aria-selected="true")
+    // This is already handled in index.html by setting aria-selected="true" on the default active tab.
 }
 
 // Video upload function moved from index.html
 function uploadAndProcessVideo() {
   const videoFile = document.getElementById('videoFile').files[0];
   if (!videoFile) {
-    alert('请选择视频文件');
+    // alert('请选择视频文件'); // Original
+    showToast('请选择视频文件', 'warning');
     return;
   }
   
