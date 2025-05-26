@@ -95,6 +95,9 @@ function initApp() {
     // 初始化确认对话框
     initConfirmDialog();
 
+    // Setup tab functionality
+    setupTabs();
+
     console.log('智能视频分析系统初始化完成');
   } catch (error) {
     console.error('初始化过程出现错误:', error);
@@ -229,16 +232,28 @@ function handleExcelUpload() {
     const excelFileInput = document.getElementById('excelFile');
     const uploadBtn = document.getElementById('uploadExcelBtn');
     const originalBtnText = uploadBtn ? uploadBtn.textContent : '上传并导入';
+    const statusDiv = document.getElementById('excelUploadStatus');
+
+    if (statusDiv) statusDiv.style.display = 'none'; // Hide previous messages
 
     if (!excelFileInput || !excelFileInput.files || excelFileInput.files.length === 0) {
-        alert('请先选择一个Excel文件！');
+        if (statusDiv) {
+            statusDiv.innerHTML = '<div style="color: var(--warning-color);">请先选择一个Excel文件！</div>';
+            statusDiv.style.display = 'block';
+        } else {
+            alert('请先选择一个Excel文件！');
+        }
         return;
     }
     const file = excelFileInput.files[0];
     const formData = new FormData();
     formData.append('excel_file', file);
 
-    console.log(`准备上传文件: ${file.name}`);
+    if (statusDiv) {
+        statusDiv.innerHTML = '<div style="color: var(--text-color);">正在上传并处理Excel文件...</div>';
+        statusDiv.style.display = 'block';
+    }
+    
     if(uploadBtn) {
         uploadBtn.disabled = true;
         uploadBtn.textContent = '上传中...';
@@ -260,22 +275,40 @@ function handleExcelUpload() {
     })
     .then(data => {
         console.log('上传响应:', data);
-        alert(data.message || 'Excel文件处理完成！');
+        let messageHtml = '';
+        const importedCount = data.data?.imported_count || 0;
+        const failedRowCount = data.data?.failed_row_count || 0; // Assuming this field exists for skipped/failed
         
-        if (data.code === 0 || (data.data && data.data.imported_count > 0)) { // code 0 for full success, or if some imported
-            loadVideoStreamsList(); // 刷新视频流列表
-        }
-
+        messageHtml = `<div style="color: var(--success-color);">Excel文件处理完成！ (导入 ${importedCount} 条，失败/跳过 ${failedRowCount} 条)</div>`;
+        
         if (data.data && data.data.errors && data.data.errors.length > 0) {
             console.warn('导入过程中发生错误:', data.data.errors);
-            // 可以在UI上更友好地展示这些错误，暂时用alert
-            let errorMessages = data.data.errors.map(err => `行 ${err.row} (ID: ${err.video_id}): ${err.messages.join(', ')}`).join('\n');
-            alert('以下行导入失败:\n' + errorMessages);
+            messageHtml += '<div style="margin-top:10px; color: var(--warning-color);"><strong>以下行导入失败:</strong><ul>';
+            data.data.errors.forEach(err => {
+                messageHtml += `<li>行 ${err.row} (ID: ${err.video_id || 'N/A'}): ${err.messages.join(', ')}</li>`;
+            });
+            messageHtml += '</ul></div>';
+        }
+        
+        if (statusDiv) {
+            statusDiv.innerHTML = messageHtml;
+            statusDiv.style.display = 'block';
+        } else {
+            alert(data.message || 'Excel文件处理完成！'); // Fallback
+        }
+        
+        if (data.code === 0 || importedCount > 0) {
+            loadVideoStreamsList(); // 刷新视频流列表
         }
     })
     .catch(error => {
         console.error('上传Excel文件失败:', error);
-        alert(`导入失败: ${error.message}`);
+        if (statusDiv) {
+            statusDiv.innerHTML = `<div style="color: var(--error-color);">导入失败: ${error.message}</div>`;
+            statusDiv.style.display = 'block';
+        } else {
+            alert(`导入失败: ${error.message}`); // Fallback
+        }
     })
     .finally(() => {
         if(uploadBtn) {
@@ -286,7 +319,7 @@ function handleExcelUpload() {
     });
 }
 
-// 移除了 handleImageResize，因为其依赖的 screenshot.js 中的 redrawCanvas 等函数可能已不适用或被移除。
+//移除了 handleImageResize，因为其依赖的 screenshot.js 中的 redrawCanvas 等函数可能已不适用或被移除。
 // 如果需要Canvas动态调整，应结合新的Canvas绘制逻辑重新实现。
 // function handleImageResize() { ... }
 
@@ -325,13 +358,26 @@ function loadVideoStreamsList() {
                         
                         // 创建信息部分
                         const infoDiv = document.createElement('div');
-                        infoDiv.innerHTML = `
-                            <strong>ID:</strong> ${stream.video_id} <br>
-                            <strong>URL:</strong> ${stream.stream_url} <br>
-                            <strong>等级:</strong> ${stream.level} 
-                            (${stream.is_active ? '<span style="color:lightgreen;">活动</span>' : '<span style="color:orange;">暂停</span>'})
-                            ${stream.remarks ? '<br><strong>备注:</strong> ' + stream.remarks : ''}
-                        `;
+                        const statusIndicator = `<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${stream.is_active ? 'var(--success-color)' : 'var(--border-color)'}; margin-right: 8px; vertical-align: middle;"></span>`;
+                        const activeStatusText = stream.is_active ? `<span style="color:var(--success-color);">活动</span>` : `<span style="color:var(--warning-color);">暂停</span>`;
+                        
+                        let detailsHtml = `<p class="stream-param"><strong>ID:</strong> ${stream.video_id}</p>`;
+                        detailsHtml += `<p class="stream-param"><strong>URL:</strong> <span class="long-text">${stream.stream_url || 'N/A'}</span></p>`;
+                        detailsHtml += `<p class="stream-param"><strong>风险等级:</strong> ${stream.level || 'N/A'}</p>`; // Assuming stream.level is Risk Level
+                        detailsHtml += `<p class="stream-param"><strong>状态:</strong> ${statusIndicator} ${activeStatusText}</p>`;
+                        
+                        // New optional parameters
+                        detailsHtml += `<p class="stream-param"><strong>抽帧间隔:</strong> ${stream.frame_extraction_interval !== undefined && stream.frame_extraction_interval !== null ? stream.frame_extraction_interval + 's' : 'N/A'}</p>`;
+                        detailsHtml += `<p class="stream-param"><strong>最大帧数:</strong> ${stream.max_frames_to_process || 'N/A'}</p>`;
+                        detailsHtml += `<p class="stream-param"><strong>YOLO模型:</strong> <span class="long-text">${stream.yolo_model_name || 'N/A'}</span></p>`;
+                        detailsHtml += `<p class="stream-param"><strong>置信度阈值:</strong> ${stream.detection_confidence_threshold || 'N/A'}</p>`;
+                        detailsHtml += `<p class="stream-param"><strong>结果推送URL:</strong> <span class="long-text">${stream.result_destination_url || 'N/A'}</span></p>`;
+                        
+                        if (stream.remarks) {
+                            detailsHtml += `<p class="stream-param"><strong>备注:</strong> <span class="long-text">${stream.remarks}</span></p>`;
+                        }
+                        
+                        infoDiv.innerHTML = detailsHtml;
                         
                         // 创建操作按钮部分
                         const actionDiv = document.createElement('div');
@@ -455,3 +501,88 @@ function deleteVideoStream(videoId) {
 // 移除了 initChatFeature 和 sendMessage 函数，因为 chat.js 已被移除
 // function initChatFeature() { ... }
 // function sendMessage() { ... }
+
+function setupTabs() {
+    const tabLinks = document.querySelectorAll('.tab-link');
+    // Ensure tabContents are queried within the correct scope if necessary, 
+    // for now, assuming they are globally unique or within dataImportConfigControls
+    const tabContents = document.querySelectorAll('#dataImportConfigControls .tab-content');
+
+
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+
+            // Update active class for tab links
+            tabLinks.forEach(innerLink => innerLink.classList.remove('active'));
+            this.classList.add('active');
+
+            // Show/hide tab content panes
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        });
+    });
+}
+
+// Video upload function moved from index.html
+function uploadAndProcessVideo() {
+  const videoFile = document.getElementById('videoFile').files[0];
+  if (!videoFile) {
+    alert('请选择视频文件');
+    return;
+  }
+  
+  // 获取表单数据
+  const formData = new FormData(document.getElementById('videoUploadForm'));
+  
+  // 显示状态
+  const statusDiv = document.getElementById('videoProcessStatus');
+  statusDiv.style.display = 'block';
+  statusDiv.innerHTML = '<div style="color:var(--text-color);">正在上传视频文件，请稍候...</div>';
+  
+  // 禁用上传按钮
+  const uploadBtn = document.getElementById('uploadVideoBtn');
+  uploadBtn.disabled = true;
+  uploadBtn.innerText = '上传中...';
+  
+  // 发送请求
+  fetch('/api/videos/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.message || '上传失败');
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('上传成功:', data);
+    statusDiv.innerHTML = `
+      <div style="color:var(--success-color);">视频上传成功！</div>
+      <div>视频ID: ${data.data.video_id}</div>
+      <div>文件名: ${data.data.filename}</div>
+      <div>任务ID: ${data.data.task_id}</div>
+      <div style="margin-top:10px;">系统正在后台处理视频，完成后可在"检测结果查询"页面查看结果。</div>
+    `;
+    
+    // 清空文件选择
+    document.getElementById('videoFile').value = '';
+  })
+  .catch(error => {
+    console.error('上传视频失败:', error);
+    statusDiv.innerHTML = `<div style="color:var(--error-color);">上传失败: ${error.message}</div>`;
+  })
+  .finally(() => {
+    // 恢复上传按钮
+    uploadBtn.disabled = false;
+    uploadBtn.innerText = '上传并处理视频';
+  });
+}

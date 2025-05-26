@@ -534,58 +534,137 @@ function clearCanvas() {
  * 加载检测统计数据
  */
 function loadDetectionStats() {
-    fetch('/api/detection/stats?days=7')
-        .then(response => response.json())
+    if (window.classStatsChartInstance) {
+        window.classStatsChartInstance.destroy();
+    }
+    if (window.dateStatsChartInstance) {
+        window.dateStatsChartInstance.destroy();
+    }
+
+    const classChartCanvas = document.getElementById('classStatsChart');
+    const dateChartCanvas = document.getElementById('dateStatsChart');
+    const classChartContainer = classChartCanvas?.parentElement;
+    const dateChartContainer = dateChartCanvas?.parentElement;
+
+    // Reset containers by recreating canvas to ensure clean state for Chart.js
+    if (classChartContainer && classChartCanvas) {
+        classChartContainer.innerHTML = '<canvas id="classStatsChart"></canvas>';
+    }
+    if (dateChartContainer && dateChartCanvas) {
+        dateChartContainer.innerHTML = '<canvas id="dateStatsChart"></canvas>';
+    }
+    
+    const newClassCtx = document.getElementById('classStatsChart')?.getContext('2d');
+    const newDateCtx = document.getElementById('dateStatsChart')?.getContext('2d');
+
+
+    fetch('/api/detection/stats?days=7') // Fetch last 7 days of stats
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`获取统计数据失败: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.code === 0 && data.data) {
-                // 显示统计信息
-                const statsContainer = document.getElementById('statsChartContainer');
-                if (!statsContainer) return;
-                
-                let statsHtml = '<div style="color: white; padding: 10px; height: 100%;">';
-                
-                // 显示类别统计
-                if (data.data.class_stats && data.data.class_stats.length > 0) {
-                    statsHtml += '<h4 style="margin-top: 0;">检测类别TOP5:</h4><ul style="padding-left: 20px;">';
-                    const topClasses = data.data.class_stats.slice(0, 5);
-                    topClasses.forEach(item => {
-                        statsHtml += `<li>${item.class_name}: ${item.object_count}个</li>`;
-                    });
-                    statsHtml += '</ul>';
-                } else {
-                    statsHtml += '<p>暂无类别统计数据</p>';
+                // Global Chart Styling
+                Chart.defaults.color = 'rgba(255, 255, 255, 0.8)';
+                Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.2)';
+
+                // Class Stats Chart (Pie Chart)
+                if (newClassCtx) {
+                    if (data.data.class_stats && data.data.class_stats.length > 0) {
+                        const top5ClassStats = data.data.class_stats.slice(0, 5);
+                        const classLabels = top5ClassStats.map(stat => stat.class_name);
+                        const classChartDataValues = top5ClassStats.map(stat => stat.object_count);
+                        
+                        window.classStatsChartInstance = new Chart(newClassCtx, {
+                            type: 'pie',
+                            data: {
+                                labels: classLabels,
+                                datasets: [{
+                                    label: 'Detection Counts',
+                                    data: classChartDataValues,
+                                    backgroundColor: [
+                                        'rgba(24, 144, 255, 0.7)', 
+                                        'rgba(82, 196, 26, 0.7)',  
+                                        'rgba(250, 173, 20, 0.7)', 
+                                        'rgba(255, 77, 79, 0.7)',  
+                                        'rgba(114, 46, 209, 0.7)'  
+                                    ],
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'top', 
+                                        labels: { color: 'rgba(255, 255, 255, 0.8)' }
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        if (classChartContainer) classChartContainer.innerHTML = '<p style="text-align:center; color:var(--text-color); padding-top: 50px;">无类别统计数据</p>';
+                    }
                 }
-                
-                // 显示日期统计
-                if (data.data.date_stats && data.data.date_stats.length > 0) {
-                    statsHtml += '<h4>最近检测趋势:</h4>';
-                    statsHtml += '<div style="display: flex; align-items: flex-end; height: 60px; gap: 3px;">';
-                    
-                    // 找出最大值用于归一化
-                    const maxCount = Math.max(...data.data.date_stats.map(d => d.detection_count));
-                    
-                    data.data.date_stats.forEach(day => {
-                        const height = Math.max(10, (day.detection_count / maxCount) * 60);
-                        const date = new Date(day.detection_date).toLocaleDateString();
-                        statsHtml += `
-                            <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                                <div style="height: ${height}px; width: 80%; background-color: #1890ff; border-radius: 2px 2px 0 0;" 
-                                     title="${date}: ${day.detection_count}次检测"></div>
-                                <div style="font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; text-align: center;">
-                                    ${date.split('/').pop()}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    statsHtml += '</div>';
+
+                // Date Stats Chart (Bar Chart)
+                if (newDateCtx) {
+                    if (data.data.date_stats && data.data.date_stats.length > 0) {
+                        const dateLabels = data.data.date_stats.map(stat => stat.detection_date);
+                        const dateChartDataValues = data.data.date_stats.map(stat => stat.detection_count);
+
+                        window.dateStatsChartInstance = new Chart(newDateCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: dateLabels,
+                                datasets: [{
+                                    label: 'Detections per Day',
+                                    data: dateChartDataValues,
+                                    backgroundColor: 'rgba(24, 144, 255, 0.5)',
+                                    borderColor: 'rgba(24, 144, 255, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                                        ticks: { color: 'rgba(255, 255, 255, 0.8)' }
+                                    },
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: { color: 'rgba(255, 255, 255, 0.8)' }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false 
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        if (dateChartContainer) dateChartContainer.innerHTML = '<p style="text-align:center; color:var(--text-color); padding-top: 50px;">无每日检测数据</p>';
+                    }
                 }
-                
-                statsHtml += '</div>';
-                statsContainer.innerHTML = statsHtml;
+            } else {
+                if (classChartContainer) classChartContainer.innerHTML = `<p style="color:var(--error-color); text-align:center; padding-top: 50px;">加载类别统计失败: ${data.message || '未知错误'}</p>`;
+                if (dateChartContainer) dateChartContainer.innerHTML = `<p style="color:var(--error-color); text-align:center; padding-top: 50px;">加载每日统计失败: ${data.message || '未知错误'}</p>`;
             }
         })
-        .catch(error => console.error('加载统计数据错误:', error));
+        .catch(error => {
+            console.error('加载统计数据错误:', error);
+            if (classChartContainer) classChartContainer.innerHTML = `<p style="color:var(--error-color); text-align:center; padding-top: 50px;">加载类别统计时出错: ${error.message}</p>`;
+            if (dateChartContainer) dateChartContainer.innerHTML = `<p style="color:var(--error-color); text-align:center; padding-top: 50px;">加载每日统计时出错: ${error.message}</p>`;
+        });
 }
 
 /**

@@ -8,63 +8,63 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <style>
+        /* Original sidebar structural styles - keep width, min-height, padding */
         .sidebar {
             width: 240px;
             min-height: calc(100vh - 56px);
-            background-color: #343a40;
-            color: #fff;
             padding: 20px 0;
+            /* background-color and color are now handled by main.css */
         }
+        /* Original sidebar-item structural styles - keep padding, cursor, border-left */
         .sidebar-item {
             padding: 8px 16px;
             cursor: pointer;
             border-left: 3px solid transparent;
+             /* hover and active background/color are now handled by main.css */
         }
-        .sidebar-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        .sidebar-item.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            border-left-color: #17a2b8;
-        }
+        /* Content area structural styles - keep */
         .content-area {
             flex: 1;
             padding: 20px;
             overflow: auto;
         }
+        /* Table container structural styles - keep padding, margin */
         .table-container {
-            background: #fff;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 4px; /* Keep for rounded corners if desired */
             padding: 15px;
             margin-bottom: 20px;
+            /* background, box-shadow, color are now handled by main.css */
         }
+        /* Table header structural styles - keep */
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
+        /* Badge-count structural styles - keep padding, radius, font-size, margin */
         .badge-count {
-            background-color: #17a2b8;
-            color: white;
+            /* background-color and color are now handled by main.css */
             padding: 3px 8px;
             border-radius: 10px;
             font-size: 12px;
             margin-left: 8px;
         }
+        /* Action buttons structural styles - keep */
         .action-buttons {
             margin-bottom: 10px;
         }
+        /* Pagination controls structural styles - keep */
         .pagination-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: 15px;
         }
-        .table th {
-            background-color: #f5f5f5;
-        }
+        /* table th background-color is now handled by main.css */
+        /* .table th { background-color: #f5f5f5; } */
+
+        /* Form inline structural styles - keep */
         .form-inline .form-group {
             margin-right: 10px;
         }
@@ -92,27 +92,16 @@
         }
     </style>
 </head>
-<body>
-    <!-- 导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="/">视频分析系统</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/">主页</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/detection_results">检测结果</a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="/database_admin">数据管理 <span class="sr-only">(current)</span></a>
-                </li>
-            </ul>
+<body class="db-admin-page">
+    <!-- Standardized Navigation Bar -->
+    <div class="nav-bar">
+        <h2>智能视频分析系统</h2>
+        <div class="nav-buttons">
+            <a href="/" class="nav-button">数据导入与配置</a>
+            <a href="/detection_results" class="nav-button">检测结果查询</a>
+            <a href="/database_admin" class="nav-button active">数据库管理</a>
         </div>
-    </nav>
+    </div>
 
     <div class="container-fluid">
         <div class="row">

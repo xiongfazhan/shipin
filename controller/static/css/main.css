@@ -8,6 +8,7 @@
   --success-color: #52c41a;
   --warning-color: #faad14;
   --error-color: #ff4d4f;
+  --primary-color-rgb: 24, 144, 255; /* Added for rgba use */
 }
 
 * {
@@ -593,4 +594,277 @@ input[type="text"]:focus, input[type="url"]:focus {
 /* 笔刷大小 */
 .brush-size {
   width: 60px;
+}
+
+/* Styles for .db-admin-page */
+.db-admin-page .content-area {
+  background-color: var(--bg-dark);
+  color: var(--text-color);
+}
+
+.db-admin-page .jumbotron {
+  background-color: #0c2846; /* Dark card background */
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 2rem 2rem; /* Adjust padding as needed */
+  margin-bottom: 20px; /* Match original margin */
+}
+
+.db-admin-page .table-container {
+  background: #0c2846; /* Dark panel color */
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  box-shadow: none; /* Remove or use a subtle dark shadow */
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.db-admin-page .table {
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.db-admin-page .table thead th {
+  background-color: rgba(255,255,255,0.08);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.db-admin-page .table tbody tr {
+  background-color: transparent; /* Ensure no light default background */
+}
+
+.db-admin-page .table tbody tr td {
+   background-color: transparent !important; /* Important to override potential bootstrap specificity */
+   border-color: var(--border-color);
+   color: var(--text-color);
+}
+
+.db-admin-page .table-hover tbody tr:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  color: var(--text-color); /* Ensure text color remains consistent on hover */
+}
+
+.db-admin-page .table-hover tbody tr:hover td {
+  background-color: rgba(var(--primary-color-rgb), 0.1) !important; /* Ensure hover applies to td */
+}
+
+
+.db-admin-page .table-bordered {
+  border: 1px solid var(--border-color);
+}
+
+.db-admin-page .table-bordered th,
+.db-admin-page .table-bordered td {
+  border: 1px solid var(--border-color);
+}
+
+.db-admin-page .form-control,
+.db-admin-page .form-inline select,
+.db-admin-page .form-inline input[type="text"],
+.db-admin-page .form-inline input[type="number"],
+.db-admin-page .form-inline input[type="search"] {
+  background-color: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.db-admin-page .form-control::placeholder {
+  color: #aaa; /* Lighter shade for placeholder */
+}
+
+.db-admin-page .form-control:focus {
+  background-color: rgba(255,255,255,0.08);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25);
+  color: var(--text-color);
+}
+
+/* Button Styles */
+.db-admin-page .btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+.db-admin-page .btn-primary:hover {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.db-admin-page .btn-secondary {
+  background-color: rgba(255,255,255,0.1);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+.db-admin-page .btn-secondary:hover {
+  background-color: rgba(255,255,255,0.2);
+  border-color: var(--primary-color);
+}
+
+.db-admin-page .btn-danger {
+  background-color: var(--error-color);
+  border-color: var(--error-color);
+  color: white;
+}
+.db-admin-page .btn-danger:hover {
+  opacity: 0.8;
+}
+
+.db-admin-page .btn-info {
+  background-color: var(--primary-color); /* Using primary for info as well */
+  border-color: var(--primary-color);
+  color: white;
+}
+.db-admin-page .btn-info:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.db-admin-page .btn-success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+  color: white;
+}
+.db-admin-page .btn-success:hover {
+  opacity: 0.8;
+}
+
+
+/* Modal Styles */
+.db-admin-page .modal-content {
+  background-color: #0c2846; /* Dark panel color */
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.db-admin-page .modal-header {
+  background-color: #002140; /* Darker header for modal */
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.db-admin-page .modal-header .close {
+  color: var(--text-color);
+  text-shadow: none;
+  opacity: 0.7;
+}
+.db-admin-page .modal-header .close:hover {
+  opacity: 1;
+}
+
+.db-admin-page .modal-body {
+  background-color: #0c2846; /* Consistent with modal content */
+  color: var(--text-color);
+}
+
+.db-admin-page .modal-footer {
+  background-color: #0c2846;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Sidebar Styles */
+.db-admin-page .sidebar {
+  background-color: #002140; /* Match control-panel */
+  color: var(--text-color); /* Ensure text is light */
+}
+
+.db-admin-page .sidebar-item {
+  color: var(--text-color); /* Ensure text is light */
+   border-left: 3px solid transparent; /* Keep for active state indicator */
+}
+
+.db-admin-page .sidebar-item:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.db-admin-page .sidebar-item.active {
+  background-color: var(--primary-color);
+  border-left-color: var(--primary-hover); /* Or use primary-color */
+  color: white;
+}
+
+.db-admin-page .sidebar-item.active i,
+.db-admin-page .sidebar-item:hover i {
+    color: white; /* Ensure icons also get correct color */
+}
+
+.db-admin-page .sidebar h5 {
+    color: var(--text-color); /* Ensure sidebar headings are light */
+}
+.db-admin-page .sidebar .text-light { /* For loading text */
+    color: var(--text-color) !important;
+}
+
+
+/* Badge Styles */
+.db-admin-page .badge-info,
+.db-admin-page .badge-count { /* badge-count was teal, make it primary */
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.db-admin-page .badge-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.db-admin-page .badge-secondary {
+  background-color: #555; /* Darker gray for secondary badge */
+  color: white;
+}
+
+.db-admin-page .badge-warning {
+    background-color: var(--warning-color);
+    color: var(--bg-darker); /* Dark text for light warning bg */
+}
+
+.db-admin-page .badge-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+/* Text utilities adjustments if needed */
+.db-admin-page .text-muted {
+  color: #aaa !important; /* Ensure muted text is visible on dark background */
+}
+
+.db-admin-page .table .thead-dark th { /* Bootstrap class */
+    color: var(--text-color);
+    background-color: rgba(255,255,255,0.1);
+    border-color: var(--border-color);
+}
+
+.db-admin-page .table .thead-light th { /* Bootstrap class */
+    color: var(--text-color); /* Should not be light */
+    background-color: rgba(255,255,255,0.08);
+    border-color: var(--border-color);
+}
+
+.db-admin-page .alert-info {
+    color: #c1e6ff;
+    background-color: rgba(var(--primary-color-rgb), 0.2);
+    border-color: rgba(var(--primary-color-rgb), 0.3);
+}
+.db-admin-page .alert-warning {
+    color: #ffeeba;
+    background-color: rgba(255,193,7,0.2); /* Using yellow for warning */
+    border-color: rgba(255,193,7,0.3);
+}
+.db-admin-page .alert-danger {
+    color: #f5c6cb;
+    background-color: rgba(var(--error-color-rgb, 255, 77, 79), 0.2); /* Assuming --error-color-rgb */
+    border-color: rgba(var(--error-color-rgb, 255, 77, 79), 0.3);
+}
+.db-admin-page .alert-success {
+    color: #d4edda;
+    background-color: rgba(var(--success-color-rgb, 82, 196, 26), 0.2); /* Assuming --success-color-rgb */
+    border-color: rgba(var(--success-color-rgb, 82, 196, 26), 0.3);
+}
+
+/* SQL Editor specific (if it's a textarea) */
+.db-admin-page .sql-editor {
+    background-color: rgba(0,0,0,0.2);
+    color: #00ff00; /* Green text like cmd-output */
+    border: 1px solid var(--border-color);
+    font-family: Consolas, monospace;
 }

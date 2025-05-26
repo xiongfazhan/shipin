@@ -11,9 +11,9 @@
   <div class="nav-bar">
     <h2>智能视频分析系统</h2>
     <div class="nav-buttons">
-      <button class="nav-button active" data-view="data_import_config">数据导入与配置</button>
-      <a href="/detection_results" class="nav-button" style="text-decoration: none; display: flex; align-items: center;">检测结果查询</a>
-      <a href="/database_admin" class="nav-button" style="text-decoration: none; display: flex; align-items: center;">数据库管理</a>
+      <a href="/" class="nav-button active">数据导入与配置</a>
+      <a href="/detection_results" class="nav-button">检测结果查询</a>
+      <a href="/database_admin" class="nav-button">数据库管理</a>
     </div>
   </div>
 
@@ -38,40 +38,62 @@
     <div class="control-panel">
       <div class="control-section active" id="dataImportConfigControls">
         <h2 class="control-title">数据导入与流配置</h2>
-        <h3 class="section-title">Excel批量导入</h3>
-        <div>
-          <input type="file" id="excelFile" accept=".xls,.xlsx,.csv" style="margin-bottom: 10px;">
-          <button class="control-button" id="uploadExcelBtn">上传并导入</button>
+
+        <div class="tabs-nav">
+            <button class="tab-link active" data-tab="tab-excel-import">Excel批量导入</button>
+            <button class="tab-link" data-tab="tab-video-file">视频文件处理</button>
+            <button class="tab-link" data-tab="tab-stream-list">视频流列表</button>
+            <button class="tab-link" data-tab="tab-filter-policies">检测过滤策略</button>
+        </div>
+
+        <div id="tab-excel-import" class="tab-content active">
+            <h3 class="section-title">Excel批量导入</h3>
+            <div>
+              <input type="file" id="excelFile" accept=".xls,.xlsx,.csv" style="margin-bottom: 10px;">
+              <button class="control-button" id="uploadExcelBtn">上传并导入</button>
+              <div id="excelUploadStatus" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"></div>
+            </div>
         </div>
         
-        <h3 class="section-title">视频文件处理</h3>
-        <div>
-          <form id="videoUploadForm" enctype="multipart/form-data">
-            <input type="file" id="videoFile" name="video_file" accept=".mp4,.avi,.mov,.mkv,.wmv,.flv" style="margin-bottom: 10px;">
-            <div style="margin-bottom: 10px;">
-              <label for="videoId">视频ID (可选):</label>
-              <input type="text" id="videoId" name="video_id" placeholder="自动生成">
+        <div id="tab-video-file" class="tab-content">
+            <h3 class="section-title">视频文件处理</h3>
+            <div>
+              <form id="videoUploadForm" enctype="multipart/form-data">
+                <input type="file" id="videoFile" name="video_file" accept=".mp4,.avi,.mov,.mkv,.wmv,.flv" style="margin-bottom: 10px;">
+                <div style="margin-bottom: 10px;">
+                  <label for="videoId">视频ID (可选):</label>
+                  <input type="text" id="videoId" name="video_id" placeholder="自动生成">
+                </div>
+                <div style="margin-bottom: 10px;">
+                  <label for="frameInterval">抽帧间隔 (秒):</label>
+                  <input type="number" id="frameInterval" name="interval" value="1.0" min="0.1" step="0.1">
+                </div>
+                <div style="margin-bottom: 10px;">
+                  <label for="frameLimit">最大处理帧数:</label>
+                  <input type="number" id="frameLimit" name="limit" value="20" min="1" step="1">
+                </div>
+                <button type="button" class="control-button" id="uploadVideoBtn">上传并处理视频</button>
+              </form>
+              <div id="videoProcessStatus" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"></div>
             </div>
-            <div style="margin-bottom: 10px;">
-              <label for="frameInterval">抽帧间隔 (秒):</label>
-              <input type="number" id="frameInterval" name="interval" value="1.0" min="0.1" step="0.1">
-            </div>
-            <div style="margin-bottom: 10px;">
-              <label for="frameLimit">最大处理帧数:</label>
-              <input type="number" id="frameLimit" name="limit" value="20" min="1" step="1">
-            </div>
-            <button type="button" class="control-button" id="uploadVideoBtn">上传并处理视频</button>
-          </form>
-          <div id="videoProcessStatus" style="margin-top: 10px; display: none; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px;"></div>
         </div>
         
-        <h3 class="section-title">视频流列表</h3>
-        <div id="videoStreamListContainer" style="max-height: 300px; overflow-y: auto; background: #0c2846; padding: 5px; border-radius: 4px;">
-          <!-- 视频流信息将在此处显示 -->
-          <p style="color: #aaa;">加载中...</p>
+        <div id="tab-stream-list" class="tab-content">
+            <h3 class="section-title">视频流列表</h3>
+            <div id="videoStreamListContainer" style="max-height: 300px; overflow-y: auto; background: #0c2846; padding: 5px; border-radius: 4px;">
+              <!-- 视频流信息将在此处显示 -->
+              <p style="color: #aaa;">加载中...</p>
+            </div>
         </div>
-        <h3 class="section-title">检测过滤策略配置</h3>
-        <button class="control-button" id="configPoliciesBtn">配置过滤策略</button>
+
+        <div id="tab-filter-policies" class="tab-content">
+            <h3 class="section-title">检测过滤策略配置</h3>
+            <button class="control-button" id="configPoliciesBtn">配置过滤策略</button>
+            <!-- Placeholder for policy configuration UI -->
+            <div id="policyConfigArea" style="margin-top: 10px; padding:10px; background:rgba(0,0,0,0.1); border-radius:4px; min-height:100px;">
+                <p style="color:#aaa;">策略配置界面待开发...</p>
+            </div>
+        </div>
       </div>
 
       <div class="control-section" id="detectionResultControls" style="display: none;">
@@ -133,72 +155,6 @@
   <script src="/static/js/app.js"></script>
   <script src="/static/js/detection_results.js"></script>
   
-  <!-- 添加视频处理相关的JavaScript -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // 绑定视频上传按钮事件
-      const uploadVideoBtn = document.getElementById('uploadVideoBtn');
-      if (uploadVideoBtn) {
-        uploadVideoBtn.addEventListener('click', uploadAndProcessVideo);
-      }
-    });
-    
-    function uploadAndProcessVideo() {
-      const videoFile = document.getElementById('videoFile').files[0];
-      if (!videoFile) {
-        alert('请选择视频文件');
-        return;
-      }
-      
-      // 获取表单数据
-      const formData = new FormData(document.getElementById('videoUploadForm'));
-      
-      // 显示状态
-      const statusDiv = document.getElementById('videoProcessStatus');
-      statusDiv.style.display = 'block';
-      statusDiv.innerHTML = '<div style="color:lightblue;">正在上传视频文件，请稍候...</div>';
-      
-      // 禁用上传按钮
-      const uploadBtn = document.getElementById('uploadVideoBtn');
-      uploadBtn.disabled = true;
-      uploadBtn.innerText = '上传中...';
-      
-      // 发送请求
-      fetch('/api/videos/upload', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(data => {
-            throw new Error(data.message || '上传失败');
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log('上传成功:', data);
-        statusDiv.innerHTML = `
-          <div style="color:lightgreen;">视频上传成功！</div>
-          <div>视频ID: ${data.data.video_id}</div>
-          <div>文件名: ${data.data.filename}</div>
-          <div>任务ID: ${data.data.task_id}</div>
-          <div style="margin-top:10px;">系统正在后台处理视频，完成后可在"检测结果查询"页面查看结果。</div>
-        `;
-        
-        // 清空文件选择
-        document.getElementById('videoFile').value = '';
-      })
-      .catch(error => {
-        console.error('上传视频失败:', error);
-        statusDiv.innerHTML = `<div style="color:salmon;">上传失败: ${error.message}</div>`;
-      })
-      .finally(() => {
-        // 恢复上传按钮
-        uploadBtn.disabled = false;
-        uploadBtn.innerText = '上传并处理视频';
-      });
-    }
-  </script>
+  <!-- Inline script for video upload has been moved to app.js -->
 </body>
 </html>
