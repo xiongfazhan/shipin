@@ -183,7 +183,7 @@ def frame_extractor_worker(video_id, level):
 
 def process_frames_worker():
     """从队列中获取帧并送入YOLO处理"""
-    from .yolo_service import detect_objects, process_detection_result, save_annotated_frame
+    from src.services.yolo_service import detect_objects, process_detection_result, save_annotated_frame
     
     # 创建检测结果目录
     detection_results_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "instance", "detection_results")

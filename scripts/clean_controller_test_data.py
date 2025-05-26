@@ -9,13 +9,15 @@ import shutil
 import sqlite3
 from pathlib import Path
 
-# 添加当前目录到路径
-current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
+# Add project root to sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+controller_dir = os.path.join(project_root, 'controller')
+
 
 # 引入Flask应用以获取正确的上下文
-from main import app
+from controller.main import app
 
 def clean_test_data(video_id=None, clean_images=True, clean_db=True, confirm=True):
     """清理测试数据
@@ -40,14 +42,14 @@ def clean_test_data(video_id=None, clean_images=True, clean_db=True, confirm=Tru
             print("操作已取消")
             return False
     
-    # 获取基础路径
-    base_dir = current_dir
+    # 获取基础路径 (now relative to controller_dir)
+    # base_dir = current_dir # Old logic
     
     # 清理图像文件
     if clean_images:
         # 定义需要清理的目录
-        instance_results_dir = Path(base_dir) / "instance" / "detection_results"
-        static_results_dir = Path(base_dir) / "static" / "results"
+        instance_results_dir = Path(controller_dir) / "instance" / "detection_results"
+        static_results_dir = Path(controller_dir) / "static" / "results"
         
         dirs_to_clean = [instance_results_dir, static_results_dir]
         
@@ -85,7 +87,7 @@ def clean_test_data(video_id=None, clean_images=True, clean_db=True, confirm=Tru
     # 清理数据库记录
     if clean_db:
         # 获取数据库路径
-        db_path = Path(base_dir) / "instance" / "video_streams.db"
+        db_path = Path(controller_dir) / "instance" / "video_streams.db"
         if not db_path.exists():
             print(f"数据库不存在: {db_path}")
             return False

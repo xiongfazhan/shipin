@@ -11,23 +11,29 @@ from pathlib import Path
 import time
 import traceback
 
-# 获取当前脚本目录
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+# Add project root to sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Define controller_dir for path constructions
+controller_dir = os.path.join(project_root, 'controller')
+
 
 def setup_directories():
     """创建必要的目录结构"""
     print("1. 创建必要的目录结构...")
     
-    # 创建实例目录
-    instance_dir = os.path.join(BASE_DIR, 'instance')
+    # 创建实例目录 (relative to controller_dir)
+    instance_dir = os.path.join(controller_dir, 'instance')
     os.makedirs(instance_dir, exist_ok=True)
     
     # 创建检测结果目录
     detection_results_dir = os.path.join(instance_dir, 'detection_results')
     os.makedirs(detection_results_dir, exist_ok=True)
     
-    # 创建静态结果目录
-    static_results_dir = os.path.join(BASE_DIR, 'static', 'results')
+    # 创建静态结果目录 (relative to controller_dir)
+    static_results_dir = os.path.join(controller_dir, 'static', 'results')
     os.makedirs(static_results_dir, exist_ok=True)
     
     print(f"- 实例目录: {instance_dir}")
@@ -42,8 +48,8 @@ def initialize_database_with_flask():
     
     try:
         # 导入Flask应用和数据库初始化函数
-        from main import app
-        from utils.database import init_db
+        from controller.main import app
+        from controller.utils.database import init_db
         
         # 创建应用上下文并初始化数据库
         with app.app_context():
@@ -63,7 +69,7 @@ def initialize_database_directly():
     """直接初始化数据库和表结构"""
     print("- 尝试直接初始化数据库...")
     
-    db_path = os.path.join(BASE_DIR, 'instance', 'video_streams.db')
+    db_path = os.path.join(controller_dir, 'instance', 'video_streams.db') # Use controller_dir
     print(f"  数据库路径: {db_path}")
     
     try:
@@ -132,8 +138,8 @@ def create_test_data():
     # 清理现有测试数据
     print("- 清理现有测试数据...")
     try:
-        from utils.clean_test_data import clean_test_data
-        clean_test_data()
+        from scripts.clean_test_data import clean_test_data # Updated path
+        clean_test_data(confirm=False) # Assuming direct call without confirmation
     except Exception as e:
         print(f"  清理测试数据失败: {e}")
         traceback.print_exc()
@@ -141,7 +147,7 @@ def create_test_data():
     # 生成测试图像
     print("- 生成测试图像...")
     try:
-        from utils.create_test_images import create_multiple_images
+        from scripts.create_test_images import create_multiple_images # Updated path
         create_multiple_images(20)
     except Exception as e:
         print(f"  生成测试图像失败: {e}")
@@ -150,7 +156,7 @@ def create_test_data():
     # 复制图像到静态目录
     print("- 复制图像到静态目录...")
     try:
-        from utils.copy_images import copy_detection_images
+        from scripts.copy_images import copy_detection_images # Updated path
         copy_detection_images()
     except Exception as e:
         print(f"  复制图像失败: {e}")
@@ -160,7 +166,7 @@ def create_test_data():
     print("- 创建测试视频流记录...")
     try:
         # 先创建视频流数据
-        db_path = os.path.join(BASE_DIR, 'instance', 'video_streams.db')
+        db_path = os.path.join(controller_dir, 'instance', 'video_streams.db') # Use controller_dir
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
@@ -187,7 +193,7 @@ def create_test_data():
         print("- 创建测试检测结果记录...")
         
         # 获取测试图像
-        static_results_dir = os.path.join(BASE_DIR, 'static', 'results')
+        static_results_dir = os.path.join(controller_dir, 'static', 'results') # Use controller_dir
         images = [f for f in os.listdir(static_results_dir) if f.startswith('TEST') and f.endswith('.jpg')]
         
         if not images:
@@ -256,7 +262,7 @@ def verify_test_data():
     print("\n4. 验证测试数据...")
     
     # 检查数据库表和记录
-    db_path = os.path.join(BASE_DIR, 'instance', 'video_streams.db')
+    db_path = os.path.join(controller_dir, 'instance', 'video_streams.db') # Use controller_dir
     try:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
@@ -300,8 +306,8 @@ def verify_test_data():
         traceback.print_exc()
     
     # 检查图像文件
-    detection_results_dir = os.path.join(BASE_DIR, 'instance', 'detection_results')
-    static_results_dir = os.path.join(BASE_DIR, 'static', 'results')
+    detection_results_dir = os.path.join(controller_dir, 'instance', 'detection_results') # Use controller_dir
+    static_results_dir = os.path.join(controller_dir, 'static', 'results') # Use controller_dir
     
     detection_images = []
     static_images = []

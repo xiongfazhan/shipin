@@ -9,10 +9,10 @@ import time
 from flask import Blueprint, request, jsonify, current_app, copy_current_request_context
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from .video_file_processing import process_video_file
+from src.video_processing.file_processor import process_video_file
 
 # 创建蓝图
-video_processing_bp = Blueprint('video_processing', __name__)
+video_processing_bp = Blueprint('video_processing', __name__, url_prefix='/api/videos')
 
 # 允许的视频文件扩展名
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv'}

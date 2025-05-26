@@ -183,10 +183,10 @@ def main():
     if args.process:
         print("\n开始处理测试视频...")
         # 导入处理模块
-        sys.path.insert(0, parent_dir)
-        from main import app
-        from video_file_processing import process_video_file
-        from copy_images import copy_detection_images
+        sys.path.insert(0, parent_dir) # parent_dir is project root
+        from controller.main import app # Assuming main is still in controller
+        from src.video_processing.file_processor import process_video_file
+        from scripts.copy_images import copy_detection_images
         
         # 设置视频ID
         video_id = f"TEST_VIDEO_{Path(video_path).stem}"
