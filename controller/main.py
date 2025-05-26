@@ -1,9 +1,10 @@
 from flask import Flask, render_template
-from utils.service import network_bp, get_local_ip
-from utils.data_processing import data_processing_bp
-from utils.detection_api import detection_api_bp
-from utils.video_processing_api import video_processing_bp
-from utils.database_admin import database_admin_bp
+from utils.service import get_local_ip # network_bp removed
+# from utils.data_processing import data_processing_bp # This Blueprint is removed as per instructions
+from controller.api.detection_api import detection_api_bp
+from controller.api.video_processing_api import video_processing_bp
+from controller.api.database_admin_api import database_admin_bp
+from controller.api.tts_api import tts_api_bp # Added for TTS
 from utils import database
 import os
 import logging
@@ -23,11 +24,12 @@ logging.basicConfig(level=logging.DEBUG if app.debug else logging.INFO,
 database.init_app(app)
 
 # 注册蓝图
-app.register_blueprint(network_bp)
-app.register_blueprint(data_processing_bp)
-app.register_blueprint(detection_api_bp)
-app.register_blueprint(video_processing_bp)
-app.register_blueprint(database_admin_bp)
+# app.register_blueprint(network_bp) # Removed
+# app.register_blueprint(data_processing_bp) # Removed
+app.register_blueprint(detection_api_bp) # Kept, source updated by import
+app.register_blueprint(video_processing_bp) # Kept, source updated by import
+app.register_blueprint(database_admin_bp) # Kept, source updated by import
+app.register_blueprint(tts_api_bp) # Added for TTS
 
 # 创建指向检测结果图像的静态路径映射
 @app.route('/static/results/<filename>')

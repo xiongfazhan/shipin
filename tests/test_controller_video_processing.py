@@ -12,7 +12,7 @@ if current_dir not in sys.path:
     sys.path.append(current_dir)
 
 # 导入测试模块
-from utils.video_processing_test import create_test_video, main as test_main
+from test_video_processing_utils import create_test_video, main as test_main # Updated path
 
 if __name__ == "__main__":
     # 直接调用测试模块的main函数

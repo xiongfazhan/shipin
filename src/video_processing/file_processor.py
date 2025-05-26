@@ -8,9 +8,9 @@ import cv2
 import time
 import sqlite3
 from datetime import datetime
-from .yolo_service import detect_objects, save_annotated_frame, process_detection_result
+from src.services.yolo_service import detect_objects, save_annotated_frame, process_detection_result
 from .database import get_db_connection
-from .copy_images import copy_detection_images
+from scripts.copy_images import copy_detection_images
 
 def process_video_file(video_path, video_id, extraction_interval=1.0, frame_limit=100, save_frames=True):
     """处理单个视频文件，进行抽帧和目标检测

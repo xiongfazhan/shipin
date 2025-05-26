@@ -9,15 +9,15 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
-# 添加当前目录到路径，以便导入模块
-current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
+# Add project root to sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 # 确保Flask应用上下文可用（用于数据库操作）
-from main import app
-from utils.video_file_processing import process_video_file
-from utils.copy_images import copy_detection_images
+from controller.main import app
+from src.video_processing.file_processor import process_video_file
+from scripts.copy_images import copy_detection_images # Assuming copy_images is now in scripts
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='视频文件处理与目标检测')

@@ -6,7 +6,7 @@
 import os
 import json
 from flask import Blueprint, request, jsonify, g, current_app
-from .database import get_db_connection, get_database_path
+from controller.utils.database import get_db_connection, get_database_path
 
 # 创建蓝图
 database_admin_bp = Blueprint('database_admin', __name__)

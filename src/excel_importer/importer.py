@@ -68,6 +68,39 @@ def read_excel_config(file_path: str) -> list[dict]:
             # Add other default fields expected by the database model, if not directly from Excel
             config['processing_status'] = 'pending' # Default status
 
+            # New optional configuration parameters
+            new_params_map = {
+                'risk_level': 'Risk Level',
+                'frame_extraction_interval': 'Frame Extraction Interval',
+                'max_frames_to_process': 'Max Frames to Process',
+                'yolo_model_name': 'YOLO Model Name',
+                'detection_confidence_threshold': 'Detection Confidence Threshold',
+                'result_destination_url': 'Result Destination URL'
+            }
+
+            for db_key, excel_col_name in new_params_map.items():
+                config[db_key] = None # Default to None if column is missing or value is NaN
+                if excel_col_name in row and not pd.isna(row[excel_col_name]):
+                    value = row[excel_col_name]
+                    try:
+                        if db_key == 'frame_extraction_interval' or db_key == 'detection_confidence_threshold':
+                            config[db_key] = float(value)
+                            print(f"Info: Read '{excel_col_name}' for {config['video_path']}: {config[db_key]}")
+                        elif db_key == 'max_frames_to_process':
+                            config[db_key] = int(value)
+                            print(f"Info: Read '{excel_col_name}' for {config['video_path']}: {config[db_key]}")
+                        else: # String types: risk_level, yolo_model_name, result_destination_url
+                            config[db_key] = str(value)
+                            print(f"Info: Read '{excel_col_name}' for {config['video_path']}: {config[db_key]}")
+                    except ValueError:
+                        print(f"Warning: Invalid value for '{excel_col_name}' for {config['video_path']} (value: {value}). Using None.")
+                        config[db_key] = None # Set to None on type error
+                elif excel_col_name not in row:
+                    print(f"Info: Column '{excel_col_name}' not found for {config['video_path']}. Setting to None.")
+                else: # Value is NaN
+                     print(f"Info: Value for '{excel_col_name}' is missing for {config['video_path']}. Setting to None.")
+
+
             configs.append(config)
             
         print(f"Successfully read {len(configs)} configurations from {file_path}")
@@ -90,13 +123,20 @@ if __name__ == '__main__':
         os.makedirs("data")
     
     dummy_data = {
-        'Video Path': ['/path/to/video1.mp4', '/path/to/video2.avi', '/another/path/video3.mkv', None, '/path/to/video4.mp4'],
-        'Video Name': ['First Video', None, 'Third Video Fun', 'No Path Video', 'Fourth Video'],
-        'Priority': [1, 2, 'InvalidPriority', 4, 5],
-        'Enabled': [True, False, 'yes', 'no', 'InvalidBoolean']
+        'Video Path': ['/path/to/video1.mp4', '/path/to/video2.avi', '/another/path/video3.mkv', None, '/path/to/video4.mp4', '/path/to/video5.mov'],
+        'Video Name': ['First Video', None, 'Third Video Fun', 'No Path Video', 'Fourth Video', 'Fifth Video'],
+        'Priority': [1, 2, 'InvalidPriority', 4, 5, 2],
+        'Enabled': [True, False, 'yes', 'no', 'InvalidBoolean', True],
+        # New optional columns for testing
+        'Risk Level': ['High', None, 'Medium', 'Low', 'High', 'Medium'],
+        'Frame Extraction Interval': [0.5, 1.0, 'invalid_float', None, 2.0, 0.25],
+        'Max Frames to Process': [100, 200, 50, None, 'invalid_int', 300],
+        'YOLO Model Name': ['yolov8n.pt', None, 'yolov8s.pt', 'yolov8n.pt', None, 'yolov8m.pt'],
+        'Detection Confidence Threshold': [0.25, 0.3, None, 'invalid_float', 0.4, 0.35],
+        'Result Destination URL': ['http://server1/results', None, 'http://server2/results', None, 'http://server1/results', None]
     }
     dummy_df = pd.DataFrame(dummy_data)
-    dummy_excel_path = "data/dummy_videos.xlsx"
+    dummy_excel_path = "data/dummy_videos_extended.xlsx" # Changed name to reflect new columns
     dummy_df.to_excel(dummy_excel_path, index=False)
     
     print(f"Created dummy Excel file at {dummy_excel_path} for testing.")
@@ -120,9 +160,12 @@ if __name__ == '__main__':
     read_excel_config(empty_excel_path)
     # os.remove(empty_excel_path) # Clean up
 
-    # Test with a file having only headers
-    header_only_excel_path = "data/header_only_videos.xlsx"
-    pd.DataFrame(columns=['Video Path', 'Video Name', 'Priority', 'Enabled']).to_excel(header_only_excel_path, index=False)
+    # Test with a file having only headers for new columns as well
+    header_only_excel_path = "data/header_only_videos_extended.xlsx"
+    columns_with_new = ['Video Path', 'Video Name', 'Priority', 'Enabled',
+                        'Risk Level', 'Frame Extraction Interval', 'Max Frames to Process',
+                        'YOLO Model Name', 'Detection Confidence Threshold', 'Result Destination URL']
+    pd.DataFrame(columns=columns_with_new).to_excel(header_only_excel_path, index=False)
     print(f"\nCreated header-only Excel file at {header_only_excel_path} for testing.")
     read_excel_config(header_only_excel_path)
     # os.remove(header_only_excel_path) # Clean up

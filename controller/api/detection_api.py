@@ -4,11 +4,11 @@
 """
 
 from flask import Blueprint, request, jsonify
-from .database import get_db_connection
+from controller.utils.database import get_db_connection
 import os
 from datetime import datetime, timedelta
 
-detection_api_bp = Blueprint('detection_api', __name__)
+detection_api_bp = Blueprint('detection_api', __name__, url_prefix='/api/detection')
 
 # 图像基础路径转换为Web路径
 def convert_image_path_for_web(file_path):

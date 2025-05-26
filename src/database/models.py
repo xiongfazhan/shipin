@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, func
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, func, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
@@ -14,6 +14,13 @@ class VideoConfiguration(Base):
     priority = Column(Integer, default=3)
     enabled = Column(Boolean, default=True)
     processing_status = Column(String, default='pending')
+    # New nullable columns for video stream configuration parameters
+    risk_level = Column(String, nullable=True)
+    frame_extraction_interval = Column(Float, nullable=True)
+    max_frames_to_process = Column(Integer, nullable=True)
+    yolo_model_name = Column(String, nullable=True)
+    detection_confidence_threshold = Column(Float, nullable=True)
+    result_destination_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
