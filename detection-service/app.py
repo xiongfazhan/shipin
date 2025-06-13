@@ -55,7 +55,15 @@ class DetectionService:
         
         # 服务配置
         self.storage_service_url = self.config.get('services', {}).get('storage_service', '')
-        self.analytics_service_url = self.config.get('services', {}).get('analytics_service', '')
+        # 1) 读取配置文件 → 2) 允许用环境变量覆盖 → 3) 回退默认值
+        self.analytics_service_url = (
+            os.environ.get('ANALYTICS_SERVICE_URL')                # 环境变量优先
+            or self.config.get('services', {}).get('analytics_service', '')
+            or 'http://localhost:8086'                             # 最后兜底
+        ).rstrip('/')                                              # 去掉尾部 /
+
+        # 打印到日志，启动时即可确认地址是否正确
+        self.logger.info(f"分析服务 URL: {self.analytics_service_url}")
         
         # 统计信息
         self.stats = {

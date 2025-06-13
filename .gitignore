@@ -26,7 +26,7 @@ Thumbs.db
 # Received log files
 received.log
 
-
+test_video.mp4
 *.mp4
 *.avi
 *.mkv
