@@ -4,7 +4,7 @@
 Mock Client Webhook – 接收 Analytics-Service 主动推送
 运行:
     pip install flask rich
-    python mock_client.py
+    python demo_summary_client.py
 """
 
 import os, json, datetime
