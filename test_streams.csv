@@ -1,0 +1,6 @@
+stream_id,name,url,risk_level,description,type,push_endpoint,push_type,push_port
+stream_001,本地测试视频,D:/工创院/后台管理系统/test_video.mp4.,中,本地MP4测试视频文件,file,http://localhost:8002/receive,http,
+stream_002,摄像头0,0,高,本地摄像头设备,camera,http://localhost:8002/receive,http,
+stream_003,公开测试流,http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4,低,HTTP视频流测试,http,http://localhost:8002/receive,http,
+stream_004,大熊兔测试,https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4,中,在线测试视频,http,http://localhost:8002/receive,http, 
+stream_005,HTTP视频流,http://192.168.31.147:4747/video,medium,HTTP直播流,http,http://localhost:8002/receive,http,

@@ -1,0 +1,4 @@
+2025-06-13T09:55:03  {"stream_id": "stream_001", "window_seconds": 300, "frame_count": 136, "object_total": 1474, "timestamp": 1749779701.1728644, "event_type": "summary", "event_counts": {}, "fallback_frame": {"timestamp": 1749779693.215506, "algo_type": "object", "data": null}}
+2025-06-13T10:00:03  {"stream_id": "stream_001", "window_seconds": 300, "frame_count": 242, "object_total": 2530, "timestamp": 1749780001.1819682, "event_type": "summary", "event_counts": {}, "fallback_frame": {"timestamp": 1749779993.3785043, "algo_type": "object", "data": null}}
+2025-06-13T10:05:03  {"stream_id": "stream_001", "window_seconds": 300, "frame_count": 56, "object_total": 588, "timestamp": 1749780301.1730056, "event_type": "summary", "event_counts": {}, "fallback_frame": {"timestamp": 1749780068.329664, "algo_type": "object", "data": null}}
+2025-06-13T14:08:47  {"event_type": "test", "message": "这是一条来自 Analytics Service 的测试推送消息。", "timestamp": 1749794927.0513444}

@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}视频流管理 - 视频流智能分析系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title">
+                <i class="bi bi-collection-play me-3"></i>视频流管理
+                <small class="text-muted">管理和控制所有视频流</small>
+            </h2>
+        </div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card control-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning-charge-fill me-2"></i> 批量操作
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-success w-100 control-btn" onclick="startAllStreams()">
+                                <i class="bi bi-play-fill me-2"></i> 启动所有流
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-danger w-100 control-btn" onclick="stopAllStreams()">
+                                <i class="bi bi-stop-fill me-2"></i> 停止所有流
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-warning w-100 control-btn" onclick="refreshStreams()">
+                                <i class="bi bi-arrow-clockwise me-2"></i> 刷新状态
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-outline-primary w-100" onclick="window.location.href='/configuration'">
+                                <i class="bi bi-plus-circle me-2"></i> 添加配置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h5 class="stat-number text-primary" id="totalStreams">0</h5>
+                                <small class="stat-label">总视频流</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h5 class="stat-number text-success" id="activeStreams">0</h5>
+                                <small class="stat-label">活跃流</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 视频流列表 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card streams-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i> 视频流列表
+                    </h6>
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <select class="form-select form-select-sm" id="riskFilter" onchange="filterStreams()">
+                                <option value="">所有风险等级</option>
+                                <option value="高">高风险</option>
+                                <option value="中">中风险</option>
+                                <option value="低">低风险</option>
+                            </select>
+                        </div>
+                        <div class="me-3">
+                            <select class="form-select form-select-sm" id="statusFilter" onchange="filterStreams()">
+                                <option value="">所有状态</option>
+                                <option value="running">运行中</option>
+                                <option value="stopped">已停止</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary refresh-btn" onclick="refreshStreams()">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table streams-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                    </th>
+                                    <th><i class="bi bi-tag me-1"></i>名称</th>
+                                    <th><i class="bi bi-link-45deg me-1"></i>视频源</th>
+                                    <th><i class="bi bi-shield me-1"></i>风险等级</th>
+                                    <th><i class="bi bi-stopwatch me-1"></i>抽帧间隔</th>
+                                    <th><i class="bi bi-activity me-1"></i>状态</th>
+                                    <th><i class="bi bi-gear me-1"></i>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="streamsList">
+                                <tr class="empty-state">
+                                    <td colspan="7" class="text-center">
+                                        <div class="empty-content">
+                                            <i class="bi bi-inbox empty-icon"></i>
+                                            <div class="empty-text">暂无视频流配置</div>
+                                            <small class="empty-subtext">请先导入CSV文件或添加配置</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量操作面板 -->
+    <div class="row mt-3" id="batchOperations" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <span class="me-3">
+                            <i class="bi bi-check-square me-2"></i>
+                            已选择 <span id="selectedCount">0</span> 个视频流
+                        </span>
+                        <button type="button" class="btn btn-success btn-sm me-2" onclick="startSelectedStreams()">
+                            <i class="bi bi-play-fill me-1"></i> 批量启动
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm me-2" onclick="stopSelectedStreams()">
+                            <i class="bi bi-stop-fill me-1"></i> 批量停止
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearSelection()">
+                            <i class="bi bi-x me-1"></i> 清除选择
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 视频流详情模态框 -->
+<div class="modal fade" id="streamDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle me-2"></i>视频流详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="streamDetailContent">
+                <!-- 详情内容将在这里动态加载 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <div id="streamActions">
+                    <!-- 操作按钮将在这里动态加载 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑视频流模态框 -->
+<div class="modal fade" id="editStreamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>编辑视频流
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editStreamForm">
+                    <div class="mb-3">
+                        <label for="editStreamName" class="form-label">名称</label>
+                        <input type="text" class="form-control" id="editStreamName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStreamUrl" class="form-label">视频源URL</label>
+                        <input type="url" class="form-control" id="editStreamUrl" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStreamRisk" class="form-label">风险等级</label>
+                        <select class="form-select" id="editStreamRisk" required>
+                            <option value="高">高风险</option>
+                            <option value="中">中风险</option>
+                            <option value="低">低风险</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStreamDesc" class="form-label">描述</label>
+                        <textarea class="form-control" id="editStreamDesc" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveStreamEdit()">
+                    <i class="bi bi-check me-2"></i>保存修改
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/streams.js"></script>
+{% endblock %} 

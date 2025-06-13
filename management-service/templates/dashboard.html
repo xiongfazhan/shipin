@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}仪表板 - 视频流智能分析系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title">
+                <i class="bi bi-speedometer2 me-3"></i>系统仪表板
+                <small class="text-muted">实时监控系统状态</small>
+            </h2>
+        </div>
+    </div>
+
+    <!-- 系统统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="bi bi-collection-play"></i>
+                                </div>
+                                <h5 class="stat-number text-primary" id="totalStreams">0</h5>
+                                <small class="stat-label">总视频流</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="bi bi-play-circle-fill"></i>
+                                </div>
+                                <h5 class="stat-number text-success" id="activeStreams">0</h5>
+                                <small class="stat-label">活跃流</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="bi bi-eye-fill"></i>
+                                </div>
+                                <h5 class="stat-number text-info" id="totalDetections">0</h5>
+                                <small class="stat-label">总检测数</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-item">
+                                <div class="stat-icon">
+                                    <i class="bi bi-speedometer2"></i>
+                                </div>
+                                <h5 class="stat-number text-warning" id="avgProcessTime">0ms</h5>
+                                <small class="stat-label">平均处理时间</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统状态和快速操作 -->
+    <div class="row">
+        <div class="col-md-8">
+            <!-- 实时活动流 -->
+            <div class="card streams-card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-activity me-2"></i> 活跃视频流
+                        <span class="live-indicator">
+                            <span class="live-dot"></span>
+                            <span class="live-text">LIVE</span>
+                        </span>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="activeStreamsList">
+                        <div class="empty-content">
+                            <i class="bi bi-pause-circle empty-icon"></i>
+                            <div class="empty-text">暂无活跃视频流</div>
+                            <small class="empty-subtext">启动视频流后，状态信息将在此显示</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 最新检测结果 -->
+            <div class="card results-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-eye-fill me-2"></i> 最新检测结果
+                        <a href="/results" class="btn btn-sm btn-outline-primary ms-auto">
+                            查看全部 <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="latestResults">
+                        <div class="empty-results">
+                            <i class="bi bi-search empty-icon"></i>
+                            <div class="empty-text">等待检测结果</div>
+                            <small class="empty-subtext">启动视频流后，最新结果将在此显示</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- 快速操作 -->
+            <div class="card control-card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning-charge-fill me-2"></i> 快速操作
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <a href="/configuration" class="btn btn-primary w-100 mb-2 control-btn">
+                        <i class="bi bi-upload me-2"></i> 导入配置
+                    </a>
+                    <a href="/streams" class="btn btn-success w-100 mb-2 control-btn">
+                        <i class="bi bi-play-fill me-2"></i> 管理视频流
+                    </a>
+                    <button type="button" class="btn btn-warning w-100 mb-2 control-btn" onclick="refreshAll()">
+                        <i class="bi bi-arrow-clockwise me-2"></i> 刷新状态
+                    </button>
+                    <a href="/settings" class="btn btn-outline-secondary w-100 control-btn">
+                        <i class="bi bi-gear me-2"></i> 系统设置
+                    </a>
+                </div>
+            </div>
+
+            <!-- 系统信息 -->
+            <div class="card config-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i> 系统信息
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="system-info">
+                        <div class="info-item mb-2">
+                            <small class="text-muted">系统状态</small>
+                            <div class="d-flex align-items-center">
+                                <span class="status-indicator status-running me-2"></span>
+                                <span class="text-success">正常运行</span>
+                            </div>
+                        </div>
+                        <div class="info-item mb-2">
+                            <small class="text-muted">运行时间</small>
+                            <div id="systemUptime">计算中...</div>
+                        </div>
+                        <div class="info-item mb-2">
+                            <small class="text-muted">YOLO模型</small>
+                            <div>YOLOv8n (已加载)</div>
+                        </div>
+                        <div class="info-item">
+                            <small class="text-muted">服务端口</small>
+                            <div>8088</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

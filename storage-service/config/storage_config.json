@@ -1,0 +1,33 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8083,
+    "debug": false
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 0,
+    "password": null,
+    "hot_data_ttl": 3600
+  },
+  "mongodb": {
+    "host": "localhost",
+    "port": 27017,
+    "database": "video_analysis",
+    "username": null,
+    "password": null,
+    "warm_data_ttl": 2592000
+  },
+  "storage": {
+    "enable_hot_cache": false,
+    "enable_cold_storage": false,
+    "max_records_per_query": 1000,
+    "cleanup_interval": 3600,
+    "archive_threshold_days": 90
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/storage.log"
+  }
+}

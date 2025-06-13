@@ -1,0 +1,11 @@
+enabled:
+  - type: object
+    model_path: models/best.pt
+    device: auto
+    confidence_threshold: 0.5
+    iou_threshold: 0.45
+  - type: pose
+    model_path: models/yolov8n-pose.pt
+    device: auto
+    confidence_threshold: 0.4
+    iou_threshold: 0.7 

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}配置管理 - 视频流智能分析系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title">
+                <i class="bi bi-gear-fill me-3"></i>配置管理
+                <small class="text-muted">导入配置文件和设置抽帧规则</small>
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- CSV导入配置 -->
+        <div class="col-md-6">
+            <div class="card config-card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-upload me-2"></i> CSV配置导入
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- 导入说明 -->
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle me-2"></i> 
+                        <strong>CSV格式说明：</strong>请确保CSV文件包含 name, url, risk_level 列
+                    </div>
+                    
+                    <!-- 上传区域 -->
+                    <div class="upload-area mb-3" id="uploadArea">
+                        <div class="upload-content">
+                            <i class="bi bi-cloud-upload upload-icon"></i>
+                            <div class="upload-text">
+                                <div class="primary-text">拖放CSV文件到这里</div>
+                                <div class="secondary-text">或点击选择文件</div>
+                            </div>
+                        </div>
+                        <input type="file" class="upload-input" id="csvFile" accept=".csv">
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary w-100 upload-btn" onclick="uploadCSV()">
+                        <i class="bi bi-upload me-2"></i> 导入配置
+                    </button>
+                    
+                    <!-- CSV格式示例 -->
+                    <div class="mt-3">
+                        <h6>CSV格式示例：</h6>
+                        <div class="csv-example">
+                            <pre class="bg-light p-3 rounded"><code>name,url,risk_level,description
+监控点1,rtsp://192.168.1.100/stream,高,大门入口监控
+监控点2,rtsp://192.168.1.101/stream,中,走廊监控
+监控点3,rtsp://192.168.1.102/stream,低,停车场监控</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 抽帧规则配置 -->
+        <div class="col-md-6">
+            <div class="card config-card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-stopwatch me-2"></i> 抽帧规则配置
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- 配置说明 -->
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i> 
+                        <strong>智能抽帧：</strong>为每个风险等级单独设置抽帧间隔，系统将根据视频流的风险等级应用对应的配置
+                    </div>
+                    
+                    <!-- 风险等级独立配置 -->
+                    <div class="mb-4">
+                        <label class="form-label config-label">
+                            <i class="bi bi-sliders me-2"></i> 风险等级抽帧间隔配置
+                        </label>
+                        
+                        <!-- 高风险配置 -->
+                        <div class="risk-config-item high-risk mb-3">
+                            <div class="risk-header">
+                                <span class="badge risk-badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>高风险
+                                </span>
+                                <small class="risk-description">高频检测，实时监控</small>
+                            </div>
+                            <div class="interval-input">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="highRiskInterval" value="2.0" step="0.1" min="0.1" max="5.0">
+                                    <span class="input-group-text">秒</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 中风险配置 -->
+                        <div class="risk-config-item medium-risk mb-3">
+                            <div class="risk-header">
+                                <span class="badge risk-badge bg-warning">
+                                    <i class="bi bi-exclamation-diamond-fill me-1"></i>中风险
+                                </span>
+                                <small class="risk-description">标准检测频率</small>
+                            </div>
+                            <div class="interval-input">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="mediumRiskInterval" value="2.0" step="0.1" min="0.1" max="5.0">
+                                    <span class="input-group-text">秒</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 低风险配置 -->
+                        <div class="risk-config-item low-risk mb-3">
+                            <div class="risk-header">
+                                <span class="badge risk-badge bg-success">
+                                    <i class="bi bi-check-circle-fill me-1"></i>低风险
+                                </span>
+                                <small class="risk-description">低频检测，节省资源</small>
+                            </div>
+                            <div class="interval-input">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="lowRiskInterval" value="2.0" step="0.1" min="0.1" max="5.0">
+                                    <span class="input-group-text">秒</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 快速预设已移除，仅保留自定义输入框 -->
+                    
+                    <button type="button" class="btn btn-success w-100 save-config-btn" onclick="saveFrameConfig()">
+                        <i class="bi bi-check2-circle me-2"></i> 保存配置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 配置状态面板 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card results-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i> 当前配置状态
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="configStatus">
+                        <div class="col-md-4">
+                            <div class="config-status-item">
+                                <h6><i class="bi bi-upload me-2"></i>CSV导入状态</h6>
+                                <div id="csvStatus" class="status-info">
+                                    <span class="badge bg-secondary">未导入</span>
+                                    <small class="text-muted ms-2">暂无视频流配置</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-status-item">
+                                <h6><i class="bi bi-stopwatch me-2"></i>抽帧配置状态</h6>
+                                <div id="frameStatus" class="status-info">
+                                    <span class="badge bg-success">已配置</span>
+                                    <small class="text-muted ms-2">使用默认平衡模式</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="config-status-item">
+                                <h6><i class="bi bi-gear me-2"></i>系统配置状态</h6>
+                                <div id="systemStatus" class="status-info">
+                                    <span class="badge bg-success">正常</span>
+                                    <small class="text-muted ms-2">所有组件运行正常</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-outline-primary" onclick="window.location.href='/streams'">
+                            <i class="bi bi-arrow-right me-2"></i> 前往视频流管理
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2" onclick="resetAllConfig()">
+                            <i class="bi bi-arrow-counterclockwise me-2"></i> 重置所有配置
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/configuration.js"></script>
+{% endblock %} 

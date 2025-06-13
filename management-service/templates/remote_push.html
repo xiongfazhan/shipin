@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}远程推送{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        background: #ffffff10;
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 24px;
+        color: #fff;
+    }
+    #msgBox {
+        height: 300px;
+        overflow-y: auto;
+        background: #00000066;
+        border-radius: 8px;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    #statusMsg {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="text-white mb-4"><i class="bi bi-send"></i> 远程推送</h2>
+
+    <div class="card">
+        <div class="mb-3">
+            <label for="urlInput" class="form-label">客户端 Webhook 地址</label>
+            <input type="text" class="form-control" id="urlInput" placeholder="https://client.example.com/iot/receive">
+        </div>
+        <button id="connectBtn" class="btn btn-success w-100" onclick="connectClient()">
+            <i class="bi bi-link-45deg"></i> 连接客户端
+        </button>
+        <div id="statusMsg" class="mt-3"></div>
+    </div>
+
+    <div class="card mt-4">
+        <h5>通信消息</h5>
+        <div id="msgBox"></div>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+function log(msg, cls="") {
+    const box = document.getElementById('msgBox');
+    const el = document.createElement('div');
+    if (cls) el.className = cls;
+    el.textContent = `[${new Date().toLocaleTimeString()}] ` + msg;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+}
+
+async function connectClient() {
+    const url = document.getElementById('urlInput').value.trim();
+    if (!url) {
+        document.getElementById('statusMsg').innerHTML = '<span class="text-danger">请输入地址</span>';
+        return;
+    }
+
+    // 保存配置到后端
+    const payload = {
+        enabled: true,
+        webhooks: [{url: url, enabled: true, headers: {}}]
+    };
+    try {
+        const res = await fetch('/api/remote_push/config', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const js = await res.json();
+        if (js.success) {
+            document.getElementById('statusMsg').innerHTML = '<span class="text-success">配置已保存，开始测试…</span>';
+            testConnection();
+        } else {
+            document.getElementById('statusMsg').innerHTML = '<span class="text-danger">保存失败: '+js.error+'</span>';
+        }
+    } catch(e) {
+        document.getElementById('statusMsg').innerHTML = '<span class="text-danger">请求异常:'+e.message+'</span>';
+    }
+}
+
+async function testConnection() {
+    try {
+        const res = await fetch('/api/remote_push/test', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:'{}'
+        });
+        const js  = await res.json();
+        if (js.success) {
+            document.getElementById('statusMsg').innerHTML = '<span class="text-success">连接成功！</span>';
+        } else {
+            document.getElementById('statusMsg').innerHTML = '<span class="text-danger">连接失败</span>';
+        }
+    } catch(e) {
+        document.getElementById('statusMsg').innerHTML = '<span class="text-danger">连接异常:'+e.message+'</span>';
+    }
+}
+
+// 页面加载：自动拉取当前配置
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/remote_push/config');
+        const js  = await res.json();
+        if (js.success) {
+            const wb = (js.config.webhooks && js.config.webhooks.length) ? js.config.webhooks[0] : {};
+            if (wb.url) document.getElementById('urlInput').value = wb.url;
+            if (js.config.enabled) {
+                document.getElementById('statusMsg').innerHTML = '<span class="text-success">已连接</span>';
+                document.getElementById('connectBtn').textContent = '更新地址';
+            }
+        }
+    } catch(e) {
+        console.warn('无法加载远程推送配置', e);
+    }
+});
+
+// ——— 接收来自 analytics-service 的演示消息 (detection / summary) ———
+const socket = io('http://'+location.hostname+':8086');
+socket.on('connect', () => log(`已连接 WebSocket (${location.hostname}:8086)`, 'text-info'));
+socket.on('push_status', data => {
+    const prefix = data.success ? '✅ 推送成功' : '❌ 推送失败';
+    log(`${prefix} ${data.url} (attempt ${data.attempt}${data.status? ' status '+data.status : ''})`);
+});
+</script>
+{% endblock %} 

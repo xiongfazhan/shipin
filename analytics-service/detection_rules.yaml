@@ -1,0 +1,244 @@
+# Unified detection rules file
+meta:
+  version: 1.0.1
+  updated: "2025-06-13T00:00:00Z"
+
+thresholds:
+  pose:
+    height_ratio:
+      min: 0.35
+      max: 0.85
+      auto_calibrated: false
+    trunk_angle:
+      min: -30
+      max: 40
+      auto_calibrated: false
+    head_angle:
+      min: -15
+      max: 25
+      auto_calibrated: false
+  object:
+    conf_default: 0.35
+
+# -------------------------
+# Action classification rules (pose based)
+# -------------------------
+actions:
+  站立:
+    geometry:
+      height_ratio_min: 1.5
+      knee_angle_min: 160
+      trunk_angle_min: 140
+      shoulder_hip_align_max: 30
+      height_min_pixels: 200
+    dynamics:
+      stability_window: 30
+      variance_threshold: 15
+      min_consecutive_frames: 30
+  坐:
+    geometry:
+      height_ratio_min: 0.75
+      height_ratio_max: 1.6
+      knee_angle_min: 40
+      knee_angle_max: 165
+      trunk_angle_min: 50
+      trunk_angle_max: 180
+      hip_knee_offset_min: -70
+      height_pixel_min: 100
+      height_pixel_max: 600
+    dynamics:
+      stability_window: 30
+      variance_threshold: 15
+      min_consecutive_frames: 25
+  躺下:
+    geometry:
+      height_ratio_min: 0.1
+      height_ratio_max: 0.65
+      trunk_angle_min: 0
+      trunk_angle_max: 50
+      height_pixel_max: 400
+    dynamics:
+      stability_window: 20
+      variance_threshold: 12
+      min_consecutive_frames: 15
+  打瞌睡:
+    geometry:
+      head_angle_min: 45
+      head_angle_max: 90
+      trunk_angle_min: 70
+      trunk_angle_max: 180
+      eye_distance_min: 10
+    dynamics:
+      nod_pattern_frames: 60
+      stability_window: 50
+      variance_threshold: 20
+      min_consecutive_frames: 40
+
+# -------------------------
+# Event rules (pose + yolo)
+# -------------------------
+events:
+  异常物品检测:
+    category: "异常物品检测"
+    enabled: true
+    models:
+    - yolo
+    detection_params:
+      frame_interval: 1
+      sample_interval: 5
+      analysis_window: 30
+      min_hits: 8
+    detection_objects:
+    - knife
+    - gun
+    output_format:
+      event_name: "异常物品检测"
+      timestamp: ISO-8601
+      location: coordinates
+  人员睡岗:
+    category: "姿态分析类异常事件"
+    enabled: true
+    models:
+    - pose
+    detection_params:
+      frame_interval: 2
+      sample_interval: 5
+      analysis_window: 300
+      min_sleep_ratio: 0.7
+    keypoint_rules:
+      head_below_shoulder: true
+    detection_objects:
+    - 被看护者
+    output_format:
+      event_name: "人员睡岗"
+      timestamp: ISO-8601
+      location: coordinates
+      duration: seconds
+  单人看护:
+    category: "人数分析类异常事件"
+    enabled: true
+    models:
+    - yolo
+    - pose
+    detection_params:
+      frame_interval: 1
+      sample_interval: 5
+      analysis_window: 60
+      max_persons: 1
+    detection_objects:
+    - 护工
+    output_format:
+      event_name: "单人看护"
+      timestamp: ISO-8601
+      location: coordinates
+  单人谈话:
+    category: "人数分析类异常事件"
+    enabled: true
+    models:
+    - yolo
+    detection_params:
+      frame_interval: 1
+      sample_interval: 5
+      analysis_window: 60
+      persons_range:
+        min: 2
+        max: 2
+    detection_objects:
+    - person
+    output_format:
+      event_name: "单人谈话"
+      timestamp: ISO-8601
+      location: coordinates
+  违规使用手机:
+    category: "行为类异常事件"
+    enabled: true
+    models:
+    - yolo
+    detection_params:
+      frame_interval: 1
+      sample_interval: 5
+      analysis_window: 300
+      min_phone_ratio: 0.9
+    detection_objects:
+    - phone
+    output_format:
+      event_name: "违规使用手机"
+      timestamp: ISO-8601
+      location: coordinates
+  抽烟行为:
+    category: "行为类异常事件"
+    enabled: true
+    models:
+    - yolo
+    detection_params:
+      frame_interval: 1
+      sample_interval: 5
+      analysis_window: 120
+      min_smoke_hits: 6
+    detection_objects:
+    - cigarette
+    output_format:
+      event_name: "抽烟行为"
+      timestamp: ISO-8601
+      location: coordinates
+  人员跌倒:
+    category: "姿态分析类异常事件"
+    enabled: true
+    models:
+    - pose
+    detection_params:
+      frame_interval: 2
+      sample_interval: 10
+      analysis_window: 120
+      min_fall_ratio: 0.7
+    keypoint_rules:
+      center_of_mass: low
+      trunk_to_ground: true
+    detection_objects:
+    - 被看护者
+    output_format:
+      event_name: "人员跌倒"
+      timestamp: ISO-8601
+      location: coordinates
+      duration: seconds
+  人员攀高:
+    category: "姿态分析类异常事件"
+    enabled: true
+    models:
+    - pose
+    detection_params:
+      frame_interval: 2
+      sample_interval: 5
+      analysis_window: 60
+      min_climb_ratio: 0.5
+    keypoint_rules:
+      hip_above_threshold: true
+    detection_objects:
+    - 被看护者
+    output_format:
+      event_name: "人员攀高"
+      timestamp: ISO-8601
+      location: coordinates
+  对象手部安全检测:
+    category: "姿态分析类异常事件"
+    enabled: true
+    models:
+    - pose
+    detection_params:
+      frame_interval: 2
+      sample_interval: 5
+      analysis_window: 60
+      hand_position: dangerous
+    detection_objects:
+    - operator
+    output_format:
+      event_name: "对象手部安全检测"
+      timestamp: ISO-8601
+      location: coordinates
+  crowding:
+    models:
+    - yolo
+    labels:
+    - person
+    max_count: 10
+    window_s: 60

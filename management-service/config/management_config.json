@@ -1,0 +1,21 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "debug": false
+  },
+  "services": {
+    "stream_service": "http://localhost:8081",
+    "detection_service": "http://localhost:8082",
+    "storage_service": "http://localhost:8083",
+    "pusher_service": "http://localhost:8086"
+  },
+  "auth": {
+    "enabled": false,
+    "secret_key": "management-service-key"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/management.log"
+  }
+}

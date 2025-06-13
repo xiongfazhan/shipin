@@ -1,0 +1,115 @@
+# 高精度动作识别规则配置 - 基于几何和动态特征
+
+actions:
+  站立:
+    # 静态几何特征 (调整以与坐姿区分)
+    geometry:
+      height_ratio_min: 1.5           # 身高归一化最小值 (进一步提高以区分坐姿)
+      knee_angle_min: 160             # 膝盖角度最小值 (略微放宽)
+      trunk_angle_min: 140            # 躯干角度最小值 (略微放宽)
+      shoulder_hip_align_max: 30      # 肩髋对齐最大偏差 (放宽容差)
+      height_min_pixels: 200          # 最小身高像素值 (进一步提高以区分坐姿)
+    
+    # 动态稳定性特征
+    dynamics:
+      stability_window: 30            # 稳定性检测窗口 (帧数)
+      variance_threshold: 15          # 高度和角度标准差阈值
+      min_consecutive_frames: 30      # 最小连续满足帧数 (1秒@30fps)
+      
+  坐:
+    # 静态几何特征 (基于实际视频数据调整)
+    geometry:
+      height_ratio_min: 0.75          # 身高比最小值 (基于四分位数调整)
+      height_ratio_max: 1.6           # 身高比最大值 (进一步放宽适应各种坐姿)
+      knee_angle_min: 40              # 膝盖角度最小值 (放宽下限，适应深度弯曲)
+      knee_angle_max: 165             # 膝盖角度最大值 (放宽上限，适应轻微弯曲)
+      trunk_angle_min: 50             # 躯干角度最小值 (适应前倾坐姿)
+      trunk_angle_max: 180            # 躯干角度最大值 (放宽到最大，适应直立坐姿)
+      hip_knee_offset_min: -70        # 臀膝偏移最小值 (负值表示膝盖可高于臀部)
+      height_pixel_min: 100           # 最小身高像素值 (基于实际数据)
+      height_pixel_max: 250           # 最大身高像素值 (进一步放宽)
+    
+    
+    # 动态稳定性特征
+    dynamics:
+      min_consecutive_frames: 15      # 最小连续帧数
+      micro_movement_threshold: 25    # 允许的微动作阈值
+      
+  躺下:
+    # 静态几何特征
+    geometry:
+      height_ratio_max: 0.3           # 身高比最大值 H_norm < 0.3
+      trunk_angle_max: 30             # 躯干角度最大值 θ_trunk < 30°
+      y_variance_max: 20              # Y坐标方差最大值 std(all_y) < 20px
+      height_pixel_max: 40            # 最大身高像素值
+      horizontal_shoulder_hip: 15     # 肩臀水平度 |shoulder_y - hip_y| < 15px
+      horizontal_hip_ankle: 15        # 臀踝水平度 |hip_y - ankle_y| < 15px
+    
+    # 动态特征
+    dynamics:
+      movement_speed_max: 2           # 平均移动速度最大值 <2px/frame
+      min_consecutive_frames: 30      # 最小连续帧数
+      stillness_threshold: 5          # 静止阈值 <5px位移
+      
+  打瞌睡:
+    # 基线姿态条件
+    baseline:
+      allow_stand: true               # 允许基于站立判断
+      allow_sit: true                 # 允许基于坐姿判断
+      height_tolerance: 0.1           # 高度条件放宽
+      angle_tolerance: 10             # 角度条件放宽
+    
+    # 静态几何特征
+    geometry:
+      head_drop_min: 40               # 头部下垂最小值 nose_y - shoulder_y_avg > 40px
+      neck_angle_max: 45              # 颈部前倾最大角度 θ_neck < 45°
+      eye_shoulder_angle_max: 45      # 眼-肩连线与垂直线夹角
+    
+    # 动态识别特征
+    dynamics:
+      nod_detection_window: 30        # 点头检测时间窗 (0.5-1s at 30fps)
+      nod_count_min: 2                # 最小点头次数 >= 2次
+      nod_speed_threshold: 15         # 点头速度阈值 |d(head_drop)/dt|
+      head_movement_amplitude_min: 20 # 头部移动幅度最小值
+
+# 全局参数
+global_params:
+  frame_rate: 30                      # 视频帧率
+  
+  # 关键点索引 (COCO-17格式)
+  keypoint_indices:
+    nose: 0
+    left_eye: 1
+    right_eye: 2
+    left_ear: 3
+    right_ear: 4
+    left_shoulder: 5
+    right_shoulder: 6
+    left_elbow: 7
+    right_elbow: 8
+    left_wrist: 9
+    right_wrist: 10
+    left_hip: 11
+    right_hip: 12
+    left_knee: 13
+    right_knee: 14
+    left_ankle: 15
+    right_ankle: 16
+  
+  # 几何计算参数
+  geometry:
+    confidence_threshold: 0.3         # 关键点置信度阈值
+    smoothing_window: 5               # 时序平滑窗口
+    angle_calculation_method: "cosine_law"  # 角度计算方法
+    
+  # 时序分析参数  
+  temporal:
+    history_buffer_size: 60           # 历史缓存大小 (2秒@30fps)
+    stability_analysis_window: 30     # 稳定性分析窗口
+    dynamic_detection_window: 15      # 动态检测窗口
+    
+  # 归一化参数
+  normalization:
+    height_reference_method: "ankle_to_nose"  # 身高参考方法
+    coordinate_smoothing: true        # 坐标平滑
+    outlier_detection: true           # 异常值检测

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}汇总结果 - 视频流智能分析系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title">
+                <i class="bi bi-bar-chart-line me-3"></i>汇总结果
+                <small class="text-muted">每五分钟统计 / 异常推送</small>
+            </h2>
+        </div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="row mb-3">
+        <div class="col-12 d-flex gap-2">
+            <select class="form-select w-auto" id="windowSelect" onchange="refreshSummary()">
+                <option value="5m">5分钟</option>
+                <option value="1h">1小时</option>
+                <option value="24h">24小时</option>
+            </select>
+            <button class="btn btn-outline-primary" onclick="refreshSummary()">
+                <i class="bi bi-arrow-clockwise me-1"></i> 刷新
+            </button>
+        </div>
+    </div>
+
+    <!-- 统计表 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card results-card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>时间窗口</th>
+                                    <th>视频流</th>
+                                    <th>检测总数</th>
+                                    <th>平均处理时间</th>
+                                    <th>异常事件</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryBody">
+                                <tr><td colspan="5" class="text-center text-muted">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/summary_results.js"></script>
+{% endblock %} 

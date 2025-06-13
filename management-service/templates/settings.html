@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}系统设置 - 视频流智能分析系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="page-title">
+                <i class="bi bi-sliders me-3"></i>系统设置
+                <small class="text-muted">配置系统参数和查看日志</small>
+            </h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 系统配置 -->
+        <div class="col-md-6">
+            <div class="card config-card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-gear-fill me-2"></i> 系统配置
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="systemConfigForm">
+                        <div class="mb-3">
+                            <label for="maxStreams" class="form-label">最大并发视频流数</label>
+                            <input type="number" class="form-control" id="maxStreams" value="10" min="1" max="50">
+                            <small class="form-text text-muted">同时处理的视频流最大数量</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="detectionConfidence" class="form-label">检测置信度阈值</label>
+                            <input type="range" class="form-range" id="detectionConfidence" min="0.1" max="1.0" step="0.1" value="0.5">
+                            <div class="d-flex justify-content-between">
+                                <small>0.1</small>
+                                <span id="confidenceDisplay">0.5</span>
+                                <small>1.0</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="resultRetention" class="form-label">结果保留时间（天）</label>
+                            <select class="form-select" id="resultRetention">
+                                <option value="1">1天</option>
+                                <option value="7" selected>7天</option>
+                                <option value="30">30天</option>
+                                <option value="90">90天</option>
+                                <option value="-1">永久保留</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="logLevel" class="form-label">日志级别</label>
+                            <select class="form-select" id="logLevel">
+                                <option value="DEBUG">DEBUG</option>
+                                <option value="INFO" selected>INFO</option>
+                                <option value="WARNING">WARNING</option>
+                                <option value="ERROR">ERROR</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="autoStart" checked>
+                            <label class="form-check-label" for="autoStart">
+                                系统启动时自动启动视频流
+                            </label>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="saveFrames" checked>
+                            <label class="form-check-label" for="saveFrames">
+                                保存检测到对象的帧图像
+                            </label>
+                        </div>
+                        
+                        <button type="button" class="btn btn-success w-100" onclick="saveSystemConfig()">
+                            <i class="bi bi-check2-circle me-2"></i> 保存设置
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- YOLO模型配置 -->
+            <div class="card config-card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-robot me-2"></i> YOLO模型配置
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="currentModel" class="form-label">当前模型</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="currentModel" value="yolov8n.pt" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="reloadModel()">
+                                <i class="bi bi-arrow-clockwise"></i> 重新加载
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modelDevice" class="form-label">计算设备</label>
+                        <select class="form-select" id="modelDevice">
+                            <option value="cpu" selected>CPU</option>
+                            <option value="cuda">CUDA (GPU)</option>
+                        </select>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary w-100" onclick="updateModelConfig()">
+                        <i class="bi bi-cpu me-2"></i> 更新模型配置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系统监控和日志 -->
+        <div class="col-md-6">
+            <!-- 系统状态 -->
+            <div class="card results-card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-activity me-2"></i> 系统状态
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="system-status">
+                        <div class="status-item mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>系统运行状态</span>
+                                <span class="badge bg-success">正常</span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>运行时间</span>
+                                <span id="systemUptime">计算中...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>内存使用</span>
+                                <span id="memoryUsage">--</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 4px;">
+                                <div class="progress-bar" id="memoryProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>CPU使用率</span>
+                                <span id="cpuUsage">--</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 4px;">
+                                <div class="progress-bar bg-warning" id="cpuProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>磁盘使用</span>
+                                <span id="diskUsage">--</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 4px;">
+                                <div class="progress-bar bg-info" id="diskProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统日志 -->
+            <div class="card control-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="bi bi-journal-text me-2"></i> 系统日志
+                    </h6>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary me-2" onclick="refreshLogs()">
+                            <i class="bi bi-arrow-clockwise"></i> 刷新
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary me-2" onclick="clearLogs()">
+                            <i class="bi bi-trash"></i> 清空
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="downloadLogs()">
+                            <i class="bi bi-download"></i> 下载
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="log-filters mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-select form-select-sm" id="logLevelFilter" onchange="filterLogs()">
+                                    <option value="">所有级别</option>
+                                    <option value="ERROR">ERROR</option>
+                                    <option value="WARNING">WARNING</option>
+                                    <option value="INFO">INFO</option>
+                                    <option value="DEBUG">DEBUG</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control form-control-sm" id="logSearchInput" 
+                                       placeholder="搜索日志内容..." onkeyup="searchLogs()">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="logContainer" class="log-container">
+                        <div class="log-entry">
+                            <span class="log-time">2024-01-15 10:30:00</span>
+                            <span class="log-level log-level-info">INFO</span>
+                            <span class="log-message">系统启动完成</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">2024-01-15 10:30:05</span>
+                            <span class="log-level log-level-info">INFO</span>
+                            <span class="log-message">YOLO模型加载成功</span>
+                        </div>
+                        <div class="log-entry">
+                            <span class="log-time">2024-01-15 10:30:10</span>
+                            <span class="log-level log-level-success">SUCCESS</span>
+                            <span class="log-message">Web服务器启动在端口8088</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作面板 -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card control-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-tools me-2"></i> 系统操作
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-warning w-100 mb-2" onclick="restartSystem()">
+                                <i class="bi bi-arrow-clockwise me-2"></i> 重启系统
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-info w-100 mb-2" onclick="backupData()">
+                                <i class="bi bi-archive me-2"></i> 备份数据
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-success w-100 mb-2" onclick="exportConfig()">
+                                <i class="bi bi-download me-2"></i> 导出配置
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-outline-secondary w-100 mb-2" onclick="resetToDefaults()">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i> 恢复默认
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>注意：</strong>重启系统将停止所有正在运行的视频流，请确保已保存重要数据。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 确认操作模态框 -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认操作</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="confirmMessage">
+                <!-- 确认消息 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirmAction">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.log-container {
+    max-height: 400px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+.log-entry {
+    display: block;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.log-time {
+    color: #6c757d;
+    margin-right: 1rem;
+}
+
+.log-level {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-right: 1rem;
+    min-width: 60px;
+    text-align: center;
+}
+
+.log-level-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.log-level-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.log-level-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.log-level-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.log-message {
+    color: #495057;
+}
+
+.system-status .status-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.system-status .status-item:last-child {
+    border-bottom: none;
+}
+
+.page-title {
+    border-bottom: 3px solid var(--primary-gradient);
+    padding-bottom: 1rem;
+    background: linear-gradient(135deg, #495057 0%, #6c757d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/settings.js"></script>
+{% endblock %} 
