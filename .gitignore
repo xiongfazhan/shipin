@@ -25,3 +25,10 @@ Thumbs.db
 
 # Received log files
 received.log
+
+
+*.mp4
+*.avi
+*.mkv
+*.zip
+*.tar.gz
