@@ -64,8 +64,11 @@ class AnalyticsService:
             self.socketio = SocketIO(self.app, cors_allowed_origins=ws_cfg.get('cors_origins', '*'), async_mode='threading')
             self._setup_socketio_events()
 
-        self.stateful_engine = StatefulDetectionEngine(r'D:\工创院\后台管理系统\analytics-service\event_rules_config_no_zones.json')
-        self.action_recognizer = AdvancedActionRecognizer(r'D:\工创院\后台管理系统\analytics-service\rule_config.yaml')
+        base_dir = os.path.dirname(__file__)
+        rules_path = os.path.join(base_dir, 'event_rules_config_no_zones.json')
+        action_cfg = os.path.join(base_dir, 'rule_config.yaml')
+        self.stateful_engine = StatefulDetectionEngine(rules_path)
+        self.action_recognizer = AdvancedActionRecognizer(action_cfg)
 
     def _setup_routes(self):
         @self.app.route('/api/health', methods=['GET'])
