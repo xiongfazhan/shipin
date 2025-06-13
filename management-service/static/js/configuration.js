@@ -177,11 +177,11 @@ async function exportConfig() {
     try {
         showLoading(true);
         
-        const [streamsRes, configRes] = await Promise.all([
+        const [streamsRes, configResp] = await Promise.all([
             fetch('/api/streams'),
             Promise.resolve({ frameConfig })
         ]);
-        
+
         const streamsData = await streamsRes.json();
         
         const exportData = {

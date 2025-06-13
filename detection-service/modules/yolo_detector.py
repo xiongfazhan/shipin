@@ -4,7 +4,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 import torch
-# 导入远程推送器
+# 远程推送器代码已删除，保留占位
 try:
     from ultralytics import YOLO
     YOLO_AVAILABLE = True
@@ -44,7 +44,7 @@ class YOLODetector:
         self.distributed_manager = distributed_manager
         self.use_distributed = distributed_manager is not None
         
-        # 远程推送器
+        # 远程推送器占位
         self.remote_pusher = None
 
         if YOLO_AVAILABLE and not self.use_distributed:

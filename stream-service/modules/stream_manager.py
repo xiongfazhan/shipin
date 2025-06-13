@@ -209,9 +209,9 @@ class StreamManager:
         try:
             # 验证配置
             required_fields = ['name', 'url', 'type']
-            for field in required_fields:
-                if field not in stream_config:
-                    raise ValueError(f"缺少必要字段: {field}")
+            for fld in required_fields:
+                if fld not in stream_config:
+                    raise ValueError(f"缺少必要字段: {fld}")
             
             # 检查并发流数量限制
             active_streams = len([s for s in self.streams.values() 
